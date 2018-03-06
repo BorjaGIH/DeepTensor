@@ -4,7 +4,7 @@ rng(1);
 %% Create feature dataset and multivariate output
 numfeat = 5; % Number of features. Determines the order of the tensor
 numpoints = 200; % Number of datapoints (each datapoint has numfeat values)
-polyOrder = 3; % Order of the polynomial. Determines the dimensions of the tensor
+polyOrder = 4; % Order of the polynomial. Determines the dimensions of the tensor
 lambda = 1e8; % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
 
