@@ -25,8 +25,7 @@ function fval = objfun(this,z) % objective function
     Y = this.y;
     for ii=1:length(X) % for all datapoints
         U = Umat(X(ii,:),this.polyOrder);
-%         U={[1,X(ii,1)],[1,X(ii,2)],[1,X(ii,3)],[1,X(ii,4)],[1,X(ii,5)]};  % matrices for the mode-n multiplication
-        Yest(ii) = tmprod(z,U,[1,2,3,4,5]);  % mode-n tensor-matrix product
+        Yest(ii) = tmprod(z,U,(1:this.numfeat));  % mode-n tensor-matrix product
     end
     Yest = Yest';
 %     fval = sum((Y-Yest).^2) + (this.lambda/2)*(frob(z)).^2; % with regularization
@@ -44,8 +43,7 @@ function grad = grad(this,z) % column vector with the gradient
         expo = [i1,i2,i3,i4,i5]-1; % the subscripts - 1 become the exponents of the variables, present in the gradient
         for ii=1:length(X)
             U = Umat(X(ii,:),this.polyOrder);
-%             U={[1,X(ii,1)],[1,X(ii,2)],[1,X(ii,3)],[1,X(ii,4)],[1,X(ii,5)]};  % matrices for the mode-n multiplication
-            prod1(ii) = -(Y(ii) - tmprod(z,U,[1,2,3,4,5]))*prod(X(ii,:).^expo); % derivative 
+            prod1(ii) = -(Y(ii) - tmprod(z,U,(1:this.numfeat)))*prod(X(ii,:).^expo); % derivative 
         end
         grad(jj) = sum(prod1); % derivative
     end
