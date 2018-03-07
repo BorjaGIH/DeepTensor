@@ -5,7 +5,7 @@ rng(1);
 %% Create feature dataset and multivariate output
 numfeat = 5; % Number of features. Determines the order of the tensor
 numpoints = 200; % Number of datapoints (each datapoint has numfeat values)
-polyOrder = 2; % Order of the polynomial. Determines the dimensions of the tensor
+polyOrder = 3; % Order of the polynomial. Determines the dimensions of the tensor
 lambda = 1e8; % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
 
@@ -64,18 +64,24 @@ if exist('log.txt', 'file') ~= 2
     formatSpec = 'Absol. train err. || Absol. test err. || Rel. train err. || Rel. test err. || Time (s) || Tensor order || Dimensions';
     fprintf(fileID,formatSpec);
     fclose(fileID);
+    
+    dimformat = string('%dx');
+    for ii=1:length(size(Wres))
+        dimformat = strcat(dimformat,'%dx');
+    end
     fileID = fopen('log.txt','a+');
-    formatSpec = '\n %4.2f || %4.2f || %4.2f || %4.2f || %4.2f || %4.2f || %4.2f ';
-    fprintf(fileID,formatSpec,ErrTr,ErrTest,ErrTr/length(Xtr),ErrTest/length(Xte),time,0,size(Wres));
+    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %4.2f || %4.2f || %4.2f || ',dimformat);
+    fprintf(fileID,formatSpec,norm(ErrTr),norm(ErrTest),(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,0,size(Wres));
     fclose(fileID);
-    disp('Hi')
 elseif exist('log.txt', 'file') == 2
     fileID = fopen('log.txt','a+');
-    formatSpec = '%4.2f || %4.2f || %4.2f || %4.2f || %4.2f || %4.2f || %4.2f ';
-    fprintf(formatSpec,ErrTr,ErrTest,ErrTr/length(Xtr),ErrTest/length(Xte),time,0,size(Wres))
+    dimformat = string('%dx');
+    for ii=1:length(size(Wres))
+        dimformat = strcat(dimformat,'%dx');
+    end
+    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %4.2f || %4.2f || %4.2f || ',dimformat);
+    fprintf(fileID,formatSpec,norm(ErrTr),norm(ErrTest),(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,0,size(Wres));
     fclose(fileID);
-    disp('Hi 2')
 else
     disp('*** Error in writing file ***')
 end
-
