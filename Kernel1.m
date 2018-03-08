@@ -6,26 +6,25 @@ properties
     y
     lambda
     numfeat
-    polyOrder
-    combMat
+    order
 end
 
 methods
 
-function this = Kernel1(x, y, lambda, numfeat, polyOrder) % constructor
+function this = Kernel1(x, y, lambda, numfeat, order) % constructor
     this.x = x;
     this.y = y;
     this.lambda = lambda;
     this.numfeat = numfeat;
-    this.polyOrder = polyOrder;
+    this.order = order;
 end
 
 function fval = objfun(this,z) % objective function
     X = this.x;
     Y = this.y;
     for ii=1:length(X) % for all datapoints
-        U = Umat(X(ii,:),this.polyOrder);
-        Yest(ii) = tmprod(z,U,(1:this.numfeat));  % mode-n tensor-matrix product
+        U = Umat2(X(ii,:),this.order);
+        Yest(ii) = tmprod(z,U,(1:this.order));  % mode-n tensor-matrix product
     end
     Yest = Yest';
 %     fval = sum((Y-Yest).^2) + (this.lambda/2)*(frob(z)).^2; % with regularization
@@ -38,12 +37,12 @@ function grad = grad(this,z) % column vector with the gradient
     Y = this.y;
     for jj=1:numel(z)
         prod1=zeros(100,1);
-        prod2=zeros(100,1);
-        [i1,i2,i3,i4,i5] = ind2sub(size(z),jj); % convert loop variable into 5-D subscripts
-        expo = [i1,i2,i3,i4,i5]-1; % the subscripts - 1 become the exponents of the variables, present in the gradient
+        indx = cell(1,this.order);
+        [indx{:}] = ind2sub(size(z),jj);
         for ii=1:length(X)
-            U = Umat(X(ii,:),this.polyOrder);
-            prod1(ii) = -(Y(ii) - tmprod(z,U,(1:this.numfeat)))*prod(X(ii,:).^expo); % derivative 
+            U = Umat2(X(ii,:),this.order);
+            Ud = Uder(X(ii,:),indx);
+            prod1(ii) = -(Y(ii) - tmprod(z,U,(1:this.order)))*Ud; % derivative 
         end
         grad(jj) = sum(prod1); % derivative
     end
