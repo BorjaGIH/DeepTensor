@@ -37,7 +37,7 @@ kernel = Kernel1(Xtr,Ystr,lambda,numfeat,order); % create kernel
 kernel.initialize(W0); % z0 is the initial guess for the variables, e.g., z0 = W0. lambda is the reg. parameter
 
 options.TolFun = 1e-20; % optimization process options
-options.MaxIter = 30;
+options.MaxIter = 100;
 % options.Display = 10;
 % options.TolX = 1e-20;
 
@@ -56,7 +56,7 @@ ErrTest = Ftest(Wres,Xte,Yste,order,numfeat); % in new data
 figure
 plot(ErrTest);
 title('Error in test set (optimization of nonlinear function)')
-disp(['Error norm divided by length in test data: ',num2str(norm(ErrTest(length(Xte))))])
+disp(['Error norm divided by length in test data: ',num2str(norm(ErrTest/length(Xte)))])
 
 %% Log file
 if exist('log.txt', 'file') ~= 2 % when file does not exits
