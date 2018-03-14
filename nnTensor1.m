@@ -3,11 +3,12 @@ rng(1);
 % https://github.com/BorjaGIH/DeepTensor
 
 %% Create feature dataset and multivariate output
-numfeat = 4; % Number of features. numfeat+1 is the dimension(s) of the tensor
-numpoints = 200; % Number of datapoints (each datapoint has numfeat values)
-order = 4; % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
-lambda = 1e8; % Regularization parameter
+numfeat = 4;        % Number of features. numfeat+1 is the dimension(s) of the tensor
+numpoints = 200;    % Number of datapoints (each datapoint has numfeat values)
+order = 4;          % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
+lambda = 1e8;       % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
+rank = 12;          % rank of the tensor, for constraint/efficient representation
 
 % Multiple Input Single Output (MISO)
 for ii = 1:numpoints
@@ -33,7 +34,7 @@ regfactor = 1e-15;
 W0 = regfactor*rand(initvec); % Dense random tensor
 
 %% Optimization using kernel
-kernel = Kernel1(Xtr,Ystr,lambda,numfeat,order); % create kernel
+kernel = Kernel1(Xtr,Ystr,lambda,numfeat,order,rank); % create kernel
 kernel.initialize(W0); % z0 is the initial guess for the variables, e.g., z0 = W0. lambda is the reg. parameter
 
 options.TolFun = 1e-20; % optimization process options
@@ -61,7 +62,7 @@ disp(['Error norm divided by length in test data: ',num2str(norm(ErrTest/length(
 %% Log file
 if exist('log.txt', 'file') ~= 2 % when file does not exits
     fileID = fopen('log.txt','w');
-    formatSpec = ' Rel. train err. || Rel. test err. || Time (s) || Iterations || Tensor order || Dimensions';
+    formatSpec = ' Rel. train err. || Rel. test err. || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank';
     fprintf(fileID,formatSpec);
     fclose(fileID);
     
@@ -69,19 +70,28 @@ if exist('log.txt', 'file') ~= 2 % when file does not exits
     for ii=1:length(size(Wres))-1
         dimformat = strcat(dimformat,'%dx');
     end
+    
     fileID = fopen('log.txt','a+');
-    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %4.2f || ',dimformat);
-    fprintf(fileID,formatSpec,(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,output.iterations,order,size(Wres));
+    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %d || %4.2f || ',dimformat, ' || %d ');
+    fprintf(fileID,formatSpec,(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,output.iterations,output.info,order,size(Wres),rank);
     fclose(fileID);
     
 elseif exist('log.txt', 'file') == 2 % when file exists
     fileID = fopen('log.txt','a+');
+    
+    % if I still want to write header when file exists...
+    formatSpec = '\n Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank';
+    fprintf(fileID,formatSpec);
+    fclose(fileID);
+    
     dimformat = string('%dx');
     for ii=1:length(size(Wres))-1
         dimformat = strcat(dimformat,'%dx');
     end
-    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %4.2f || ',dimformat);
-    fprintf(fileID,formatSpec,(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,output.iterations,order,size(Wres));
+    
+    fileID = fopen('log.txt','a+');
+    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %d || %4.2f || ',dimformat, ' || %d ');
+    fprintf(fileID,formatSpec,(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,output.iterations,output.info,order,size(Wres),rank);
     fclose(fileID);
     
 else % any other case

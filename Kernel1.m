@@ -1,27 +1,31 @@
 classdef Kernel1 < TensorOptimizationKernel
 
 properties
-    % things you want to store, e.g., the data and the labels
-    x
-    y
-    lambda
-    numfeat
-    order
+    x       % input data
+    y       % label or output data
+    lambda  % regularization parameter (when needed)
+    numfeat % number of features 
+    order   % order of the tensor
+    rank    % rank of the tensor for decomposition (constraint/efficient representation)
 end
 
 methods
 
-function this = Kernel1(x, y, lambda, numfeat, order) % constructor
+function this = Kernel1(x, y, lambda, numfeat, order, rank) % constructor
     this.x = x;
     this.y = y;
     this.lambda = lambda;
     this.numfeat = numfeat;
     this.order = order;
+    this.rank = rank;
 end
 
 function fval = objfun(this,z) % objective function
     X = this.x;
     Y = this.y;
+%     this.rank = rankest(z); % rank so that error is below threshold in CPD
+    [ucpd,~] = cpd(z,this.rank); % approximate tensor with fixed rank (constraint/efficient representation)
+    z = cpdgen(ucpd); % reconstruct tensor
     for ii=1:length(X) % for all datapoints
         U = Umat2(X(ii,:),this.order);
         Yest(ii) = tmprod(z,U,(1:this.order));  % mode-n tensor-matrix product
@@ -35,6 +39,9 @@ function grad = grad(this,z) % column vector with the gradient
     %% analytic
     X = this.x;
     Y = this.y;
+%     this.rank = rankest(z); % rank so that error is below threshold in CPD
+    [ucpd,~] = cpd(z,this.rank); % approximate tensor with fixed rank (constraint/efficient representation)
+    z = cpdgen(ucpd); % reconstruct tensor
     for jj=1:numel(z)
         prod1=zeros(100,1);
         indx = cell(1,this.order);
