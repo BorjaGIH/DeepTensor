@@ -43,7 +43,9 @@ options.MaxIter = 100;
 % options.TolX = 1e-20;
 
 % Minimize
-[Wres,output] = minf_lbfgs(@kernel.objfun, @kernel.grad, W0, options); 
+
+[Wres,output] = minf_lbfgs(@kernel.objfun, @kernel.grad, W0, options);
+
 time = toc;
 
 %% Tests
