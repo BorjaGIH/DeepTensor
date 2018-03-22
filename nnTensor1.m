@@ -34,18 +34,17 @@ regfactor = 1e-15;
 W0 = regfactor*rand(initvec); % Dense random tensor
 
 %% Optimization using kernel
+[U0,~] = cpd(W0,rank); % factorize
 kernel = Kernel1(Xtr,Ystr,lambda,numfeat,order,rank); % create kernel
-kernel.initialize(W0); % z0 is the initial guess for the variables, e.g., z0 = W0. lambda is the reg. parameter
+kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = W0. lambda is the reg. parameter
 
 options.TolFun = 1e-20; % optimization process options
 options.MaxIter = 100;
 % options.Display = 10;
 % options.TolX = 1e-20;
 
-% Minimize
-
-[Wres,output] = minf_lbfgs(@kernel.objfun, @kernel.grad, W0, options);
-
+[Ures,output] = minf_lbfgs(@kernel.objfun, @kernel.grad, U0, options); % Minimize
+Wres = cpdgen(Ures); % reconstruct tensor from factors
 time = toc;
 
 %% Tests
