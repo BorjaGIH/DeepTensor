@@ -13,3 +13,7 @@
  2.19 || 3.27 || 557.21 || 29 || 2 || 4.00 ||5x5x5x5x || 12
  Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank
  2.19 || 3.27 || 1393.64 || 29 || 2 || 4.00 ||5x5x5x5x || 12
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank
+ 96.10 || 141.75 || 90.73 || 3 || 2 || 4.00 ||5x5x5x5x || 12
+ 96.10 || 141.75 || 172.07 || 3 || 2 || 4.00 ||5x5x5x5x || 12
+ 208.94 || 325.34 || 1727.25 || 33 || 2 || 4.00 ||5x5x5x5x || 12

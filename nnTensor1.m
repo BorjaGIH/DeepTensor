@@ -81,9 +81,9 @@ elseif exist('log.txt', 'file') == 2 % when file exists
     fileID = fopen('log.txt','a+');
     
     % if I still want to write header when file exists...
-    formatSpec = '\n Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank';
-    fprintf(fileID,formatSpec);
-    fclose(fileID);
+%     formatSpec = '\n Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank';
+%     fprintf(fileID,formatSpec);
+%     fclose(fileID);
     
     dimformat = string('%dx');
     for ii=1:length(size(Wres))-1
