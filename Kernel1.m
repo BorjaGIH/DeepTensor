@@ -23,21 +23,24 @@ end
 function fval = objfun(this,z) % objective function
     X = this.x;
     Y = this.y;
-    indx = cell(1,this.order);
+    indx = cell(1,this.order); 
     Yest = zeros(length(X),1);
-    for ii=1:length(Yest)
-        for jj=1:numel(z) % warning! check correctness
-            [indx{:}] = ind2sub(size(z),jj);
+    for ii=1:length(Yest) % loop through all datapoints
+        xii = [1, X(ii,:)];
+        for jj=1:(this.numfeat+1)^this.order % loop through all elements in the tensor
+            [indx{:}] = ind2sub(repmat(this.numfeat+1,1,this.order),jj);
             indVec = cell2mat(indx);
-            w2 = 0;
-            for kk=1:this.rank
-                w1 = 1;
-                for ll=1:length(z)
-                    w1 = w1 * z{ll}(indVec(ll),kk);
-                end
-                w2 = w2 + w1;
-            end
-            Yest(ii) = Yest(ii) + (w2 * prod(X(ii,indVec)));
+%             w2 = 0;
+%             for kk=1:this.rank % "recover" the tensor elements from CPD factor matrices (two loops)
+%                 w1 = 1;
+%                 for ll=1:length(z)
+%                     w1 = w1 * z{ll}(indVec(ll),kk);
+%                 end
+%                 w2 = w2 + w1;
+%             end
+            w2 = cpdgen(z,jj);
+            Yest(ii) = Yest(ii) + (w2 * prod(xii(indVec))); % Mode-n product
+%             disp([jj, w2, prod(xii(indVec))])
         end
     end
     fval = (1/2)*sum((Y-Yest).^2); % no regularization
@@ -47,8 +50,6 @@ function grad = grad(this,z) % column vector with the gradient
     %% analytic
 %     X = this.x;
 %     Y = this.y;
-    
-    
     
 % %     this.rank = rankest(z); % rank so that error is below threshold in CPD
 %     [ucpd,~] = cpd(z,this.rank); % approximate tensor with fixed rank (constraint/efficient representation)

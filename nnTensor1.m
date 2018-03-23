@@ -73,7 +73,7 @@ if exist('log.txt', 'file') ~= 2 % when file does not exits
     end
     
     fileID = fopen('log.txt','a+');
-    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %d || %4.2f || ',dimformat, ' || %d ');
+    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d ');
     fprintf(fileID,formatSpec,(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,output.iterations,output.info,order,size(Wres),rank);
     fclose(fileID);
     
@@ -91,7 +91,7 @@ elseif exist('log.txt', 'file') == 2 % when file exists
     end
     
     fileID = fopen('log.txt','a+');
-    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %d || %4.2f || ',dimformat, ' || %d ');
+    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d ');
     fprintf(fileID,formatSpec,(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,output.iterations,output.info,order,size(Wres),rank);
     fclose(fileID);
     
