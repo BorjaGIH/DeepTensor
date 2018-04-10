@@ -30,17 +30,8 @@ function fval = objfun(this,z) % objective function
         for jj=1:(this.numfeat+1)^this.order % loop through all elements in the tensor
             [indx{:}] = ind2sub(repmat(this.numfeat+1,1,this.order),jj);
             indVec = cell2mat(indx);
-%             w2 = 0;
-%             for kk=1:this.rank % "recover" the tensor elements from CPD factor matrices (two loops)
-%                 w1 = 1;
-%                 for ll=1:length(z)
-%                     w1 = w1 * z{ll}(indVec(ll),kk);
-%                 end
-%                 w2 = w2 + w1;
-%             end
             w2 = cpdgen(z,jj);
             Yest(ii) = Yest(ii) + (w2 * prod(xii(indVec))); % Mode-n product
-%             disp([jj, w2, prod(xii(indVec))])
         end
     end
     fval = (1/2)*sum((Y-Yest).^2); % no regularization
