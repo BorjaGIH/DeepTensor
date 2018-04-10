@@ -4,5 +4,5 @@ function Ftest = Ftest(W,X,Y,order,numfeat)
         Yest(ii) = tmprod(W,U,(1:order));  % mode-n tensor-matrix product
     end
     Yest = Yest';
-    Ftest=Y-Yest;
+    Ftest=Y-Yest; % square error!!
 end

@@ -3,8 +3,8 @@ rng(1);
 % https://github.com/BorjaGIH/DeepTensor
 
 %% Create feature dataset and multivariate output
-numfeat = 4;        % Number of features. numfeat+1 is the dimension(s) of the tensor
-numpoints = 150;    % Number of datapoints (each datapoint has numfeat values)
+numfeat = 2;        % Number of features. numfeat+1 is the dimension(s) of the tensor
+numpoints = 100;    % Number of datapoints (each datapoint has numfeat values)
 order = 3;          % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
 lambda = 1e8;       % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
@@ -30,7 +30,7 @@ Yste = Ys(1:sizete*numpoints);
 % Order of the tensor: numfeat. Dimensions: numfeat 
 tic % time
 initvec = repmat(numfeat+1,1,order);
-regfactor = 1e-15;
+regfactor = 1e-6;
 W0 = regfactor*rand(initvec); % Dense random tensor
 
 %% Optimization using kernel

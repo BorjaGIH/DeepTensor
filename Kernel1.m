@@ -49,8 +49,7 @@ end
 function grad = grad(this,z) % column vector with the gradient
     %% analytic
 %     X = this.x;
-%     Y = this.y;
-    
+%     Y = this.y;   
 % %     this.rank = rankest(z); % rank so that error is below threshold in CPD
 %     [ucpd,~] = cpd(z,this.rank); % approximate tensor with fixed rank (constraint/efficient representation)
 %     z = cpdgen(ucpd); % reconstruct tensor
