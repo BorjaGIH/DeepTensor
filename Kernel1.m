@@ -21,17 +21,16 @@ function this = Kernel1(x, y, lambda, numfeat, order, rank) % constructor
 end
 
 function fval = objfun(this,z) % objective function
-    X = this.x;
+%     X = this.x;
+    X = [ones(size(this.x,1),1),this.x];
     Y = this.y;
-    indx = cell(1,this.order); 
     Yest = zeros(length(X),1);
     for ii=1:length(Yest) % loop through all datapoints
-        xii = [1, X(ii,:)];
-        for jj=1:(this.numfeat+1)^this.order % loop through all elements in the tensor
-            [indx{:}] = ind2sub(repmat(this.numfeat+1,1,this.order),jj);
-            indVec = cell2mat(indx);
-            w2 = cpdgen(z,jj);
-            Yest(ii) = Yest(ii) + (w2 * prod(xii(indVec))); % Mode-n product
+        for r=1:size(z{1},2)
+            for jj=1:size(z,2)
+                tmp(jj) = sum(z{jj}(:,r)'.*X(ii,:));
+            end
+            Yest(ii) = prod(tmp);
         end
     end
     fval = (1/2)*sum((Y-Yest).^2); % no regularization

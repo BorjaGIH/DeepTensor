@@ -1,12 +1,12 @@
 clearvars; close all;
 rng(1);
 % https://github.com/BorjaGIH/DeepTensor
-% PD_constraint branch
+% PD_efficient branch
 
 %% Create feature dataset and multivariate output
 numfeat = 4;        % Number of features. numfeat+1 is the dimension(s) of the tensor
 numpoints = 100;    % Number of datapoints (each datapoint has numfeat values)
-order = 3;          % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
+order = 4;          % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
 lambda = 1e8;       % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
 rank = 12;          % rank of the tensor, for constraint/efficient representation
