@@ -18,3 +18,41 @@
  96.10 || 141.75 || 172.07 || 3 || 2 || 4.00 ||5x5x5x5x || 12
  208.94 || 325.34 || 1727.25 || 33 || 2 || 4.00 ||5x5x5x5x || 12
  404.23 || 600.33 || 2549.96 || 65 || 2 || 4.00 ||5x5x5x5x || 12
+ 0.17 || 0.27 || 6061.55 || 100 || 3 || 3 ||3x3x3x || 12
+ 9.23 || 15.07 || 207.37 || 100 || 3 || 3 ||5x5x5x || 12
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Learned func
+ 9.03 || 14.97 || 1409.18 || 300 || 3 || 4 ||5x5x5x5x || 12 || 1
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Learned func
+ 327.74 || 464.10 || 53029.22 || 400 || 3 || 4 ||5x5x5x5x || 12 || 1
+ 8.96 || 14.54 || 1833.29 || 400 || 3 || 4 ||5x5x5x5x || 12 || 1
+ 8.95 || 14.48 || 618.38 || 400 || 3 || 4 ||5x5x5x5x || 6 || 1
+ 8.93 || 14.43 || 126.33 || 400 || 3 || 4 ||5x5x5x5x || 3 || 1
+ 8.83 || 14.11 || 275.76 || 800 || 3 || 4 ||5x5x5x5x || 3 || 1
+ 8.82 || 14.06 || 521.78 || 1172 || 2 || 4 ||5x5x5x5x || 3 || 1
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 8.98 || 14.57 || 64.93 || 200 || 3 || 4 ||5x5x5x5x || 3 || 1 ||
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 9.09 || 14.74 || 50.21 || 200 || 3 || 4 ||5x5x5x5x || 3 || 1 ||
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 8.99 || 14.63 || 110.44 || 500 || 3 || 4 ||5x5x5x5x || 3 || 1 ||
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 9.09 || 14.74 || 52.54 || 200 || 3 || 4 ||5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 24.85 || 34.81 || 10.17 || 10 || 3 || 4 ||5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 10.25 || 17.06 || 26.59 || 50 || 3 || 4 ||5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 9.76 || 16.03 || 46.45 || 100 || 3 || 4 ||5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 9.44 || 15.38 || 4726.51 || 200 || 3 || 5 ||5x5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 1.96 || 3.05 || 96.80 || 200 || 3 || 5 ||5x5x5x5x5x || 3 || 0 || minf_lbfgsdl
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 9.38 || 15.23 || 65.91 || 200 || 3 || 5 ||5x5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ 9.69 || 16.22 || 65.81 || 200 || 3 || 5 ||5x5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ 132.57 || 178.07 || 1.01 || 1 || 2 || 5 ||5x5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ 132.57 || 178.07 || 0.97 || 1 || 2 || 5 ||5x5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ 13.29 || 19.30 || 88.16 || 200 || 3 || 5 ||5x5x5x5x5x || 3 || 1 || minf_lbfgsdl
+ 9.44 || 15.38 || 109.00 || 200 || 3 || 5 ||5x5x5x5x5x || 3 || 1 || minf_lbfgsdl
