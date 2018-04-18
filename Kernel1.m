@@ -25,6 +25,7 @@ function fval = objfun(this,z) % objective function
     X = [ones(size(this.x,1),1),this.x];
     Y = this.y;
     Yest = zeros(length(X),1);
+    % CHECK FOR CORRECTNES!!
     for ii=1:length(Yest) % loop through all datapoints
         for r=1:size(z{1},2)
             for jj=1:size(z,2)

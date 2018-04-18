@@ -1,4 +1,5 @@
-wipe;
+% wipe;
+clearvars; close all; clc
 
 % create lscpd problem
 size_tens = [1000 9 8 7]; R = 3;
