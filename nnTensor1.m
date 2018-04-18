@@ -1,16 +1,17 @@
 clearvars; close all;
 rng(1);
 % https://github.com/BorjaGIH/DeepTensor
-% PD_efficient branch
+% PD_constraint branch
 
 %% Create feature dataset and multivariate output
-numfeat = 4;        % Number of features. numfeat+1 is the dimension(s) of the tensor
-numpoints = 100;    % Number of datapoints (each datapoint has numfeat values)
-order = 4;          % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
-lambda = 1e8;       % Regularization parameter
+numfeat = 4;             % Number of features. numfeat+1 is the dimension(s) of the tensor
+numpoints = 100;         % Number of datapoints (each datapoint has numfeat values)
+order = 5;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
+lambda = 1e8;            % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
-rank = 3;          % rank of the tensor, for constraint/efficient representation
-nonlin = true;         % learned function is nonlinear. 1 or 0
+rank = 3;                % rank of the tensor, for constraint/efficient representation
+options.MaxIter = 200;   % optimization iterations
+nonlin = true;           % learned function is nonlinear. 1 or 0
 
 % Multiple Input Single Output (MISO)
 for ii = 1:numpoints
@@ -38,11 +39,11 @@ W0 = regfactor*rand(initvec); % Dense random tensor
 
 %% Optimization using kernel
 [U0,~] = cpd(W0,rank); % factorize and ensure we take a rank smaller than that estimated by rankest
-R = rankest(W0);
-if rank>R
-    rank = R;
-    disp(['Inputed rank is bigger than estimated by rankest, so it has been changed '])
-end
+% R = rankest(W0);
+% if rank>R
+%     rank = R;
+%     disp(['Inputed rank is bigger than estimated by rankest, so it has been changed '])
+% end
 
 kernel = Kernel1(Xtr,Ystr,lambda,numfeat,order,rank); % create kernel
 kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = W0. lambda is the reg. parameter
@@ -52,9 +53,8 @@ kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = W
 % Check if this is normal, seeing that the optimization variables are the
 % factor matrices.
 
-% optimization process options
+% some optimization process options
 options.TolFun = 1e-20; 
-options.MaxIter = 200;
 % options.Display = 10;
 % options.TolX = 1e-20;
 
@@ -97,9 +97,9 @@ elseif exist('log.txt', 'file') == 2 % when file exists
     fileID = fopen('log.txt','a+');
     
     % if I still want to write header when file exists...
-    formatSpec = '\n Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer';
-    fprintf(fileID,formatSpec);
-    fclose(fileID);
+%     formatSpec = '\n Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer';
+%     fprintf(fileID,formatSpec);
+%     fclose(fileID);
     
     dimformat = string('%dx');
     for ii=1:length(size(Wres))-1
