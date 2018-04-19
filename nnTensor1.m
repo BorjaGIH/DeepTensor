@@ -6,7 +6,7 @@ rng(1);
 %% Create feature dataset and multivariate output
 numfeat = 4;             % Number of features. numfeat+1 is the dimension(s) of the tensor
 numpoints = 150;         % Number of datapoints (each datapoint has numfeat values)
-order = 5;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
+order = 3;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
 lambda = 1e8;            % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
 rank = 3;                % rank of the tensor, for constraint/efficient representation
