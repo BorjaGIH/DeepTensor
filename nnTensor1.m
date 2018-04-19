@@ -5,15 +5,15 @@ rng(1);
 
 %% Create feature dataset and multivariate output
 numfeat = 4;             % Number of features. numfeat+1 is the dimension(s) of the tensor
-numpoints = 100;         % Number of datapoints (each datapoint has numfeat values)
-order = 3;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
+numpoints = 150;         % Number of datapoints (each datapoint has numfeat values)
+order = 2;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
 lambda = 1e8;            % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
 rank = 3;                % rank of the tensor, for constraint/efficient representation
-options.MaxIter = 200;   % optimization iterations
-nonlin = true;           % learned function is nonlinear. 1 or 0
+options.MaxIter = 300;   % optimization iterations
+nonlin = true;           % learned function is nonlinear
 
-% Multiple Input Single Output (MISO)
+% Y output. MISO
 for ii = 1:numpoints
     Ys(ii) = f1(X(ii,:),nonlin); % Output: univariate nonlinear combination of the inputs
 end
@@ -31,7 +31,7 @@ Yste = Ys(1:sizete*numpoints);
 
 %% Create initial U0
 tic % time
-size_tens = [numpoints numfeat+1 numfeat+1 numfeat+1];
+size_tens = [numpoints repmat(numfeat+1,1,order)];
 U0 = cpd_rnd(size_tens(2:end),rank);
 
 %% Optimization LS-CPD
