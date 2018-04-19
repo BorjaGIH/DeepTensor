@@ -76,3 +76,9 @@
  -0.54 || 108.96 || 300 || 3 || 3 ||5x5x5x || 3 || 1 || minf_lbfgsdl
  Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
  -1.18 || 57.49 || 300 || 3 || 3 ||5x5x5x || 3 || 1 || minf_lbfgsdl
+ Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ -0.78 || 2.16 || 300 || 3 || 2 ||5x5x || 3 || 1 || ls-cpd nls
+ Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ -0.78 || 1.94 || 300 || 3 || 2 ||5x5x || 3 || 1 || ls-cpd nls
+ Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
+ -1.18 || 91.29 || 300 || 3 || 3 ||5x5x5x || 3 || 1 || minf_lbfgsdl
