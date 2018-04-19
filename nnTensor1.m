@@ -10,7 +10,7 @@ order = 5;               % Order of the tensor. "order" is degree of the polynom
 lambda = 1e8;            % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
 rank = 3;                % rank of the tensor, for constraint/efficient representation
-options.MaxIter = 200;   % optimization iterations
+options.MaxIter = 100;   % optimization iterations
 nonlin = true;           % learned function is nonlinear. 1 or 0
 
 % Multiple Input Single Output (MISO)
