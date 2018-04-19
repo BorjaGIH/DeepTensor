@@ -65,7 +65,7 @@ Wres = cpdgen(Ures); % reconstruct tensor from factors
 time = toc;
 
 %% Tests
-Err = (frob(W)-frob(Wres))/frob(Wres)
+Err = (frob(W)-frob(Wres))/frob(W)
 disp(['Relative error (tensor) frob norm: ',Err])
 
 %% Log file
