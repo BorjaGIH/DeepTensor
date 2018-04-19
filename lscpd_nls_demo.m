@@ -2,8 +2,8 @@
 clearvars; close all; clc
 
 % create lscpd problem
-% size_tens = [1000 9 8 7]; R = 3;
-size_tens = [10 2 2 2]; R = 2;
+size_tens = [1000 9 8 7]; R = 3;
+% size_tens = [10 2 2 2]; R = 2;
 U = cpd_rnd(size_tens(2:end),R)
 A = randn(size_tens(1),prod(size_tens(2:end)));
 b = A*tens2vec(ful(U));
@@ -18,7 +18,7 @@ options.CGMaxIter = prod(size_tens(2:end));
 U0 = cpd_rnd(size_tens(2:end),R);
 
 % compute solution
-[Uest,output] = lscpd_nls(A,b,U0,options);
+[Uest,output] = lscpd_nls(A,b,U0);
 
 % check error
 frob(ful(U)-ful(Uest))/frob(ful(U))

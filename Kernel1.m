@@ -25,15 +25,21 @@ function fval = objfun(this,z) % objective function
     X = [ones(size(this.x,1),1),this.x];
     Y = this.y;
     Yest = zeros(length(X),1);
-    % CHECK FOR CORRECTNES!!
+    indx = cell(1,this.order);
+    
+%     for ii=1:(this.numfeat+1)^this.order   % alternative, check what is faster
+%     for ii=1:numel(ful(z))
+%         [indx{:}] = ind2sub(repmat(this.numfeat+1,1,this.order),jj);
+%         indVec = cell2mat(indx);
+%     end
+    
     for ii=1:length(Yest) % loop through all datapoints
-        for r=1:size(z{1},2)
-            for jj=1:size(z,2)
-                tmp(jj) = sum(z{jj}(:,r)'.*X(ii,:));
-            end
-            Yest(ii) = prod(tmp);
+        for jj=1:(this.numfeat+1)^this.order % loop through all elements in the tensor
+            [indx{:}] = ind2sub(repmat(this.numfeat+1,1,this.order),jj)
+            indVec = cell2mat(indx)
         end
     end
+    
     fval = (1/2)*sum((Y-Yest).^2); % no regularization
 end 
 
