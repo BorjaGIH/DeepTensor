@@ -13,9 +13,13 @@ rank = 3;                % rank of the tensor, for constraint/efficient represen
 options.MaxIter = 300;   % optimization iterations
 nonlin = true;           % learned function is nonlinear
 
-% Y output. MISO
+% Y output. Created as mode-n prod. with tensor
+initvec = repmat(numfeat+1,1,order);
+W = rand(initvec); % Dense random "TRUE" tensor
+
 for ii = 1:numpoints
-    Ys(ii) = f1(X(ii,:),nonlin); % Output: univariate nonlinear combination of the inputs
+    U = Umat2(X(ii,:),order);
+    Ys(ii) = tmprod(W,U,(1:order));
 end
 Ys = Ys';
 
@@ -55,22 +59,13 @@ Wres = cpdgen(Ures);
 time = toc;
 
 %% Tests
-ErrTr = Ftest(Wres,Xtr,Ystr,order,numfeat); % in "train" data
-figure
-plot(ErrTr);
-title('Error in train set (optimization of nonlinear function)')
-disp(['Error norm divided by length in train data: ',num2str(norm(ErrTr/length(Xtr)))])
-
-ErrTest = Ftest(Wres,Xte,Yste,order,numfeat); % in "new" data
-figure
-plot(ErrTest);
-title('Error in test set (optimization of nonlinear function)')
-disp(['Error norm divided by length in test data: ',num2str(norm(ErrTest/length(Xte)))])
+Err = (frob(W)-frob(Wres))/frob(W)
+disp(['Relative error (tensor) frob norm: ',Err])
 
 %% Log file
 if exist('log.txt', 'file') ~= 2 % when file does not exist
     fileID = fopen('log.txt','w');
-    formatSpec = ' Rel. train err. || Rel. test err. || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer ||';
+    formatSpec = ' Rel. error || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer ||';
     fprintf(fileID,formatSpec);
     fclose(fileID);
     
@@ -80,17 +75,17 @@ if exist('log.txt', 'file') ~= 2 % when file does not exist
     end
     
     fileID = fopen('log.txt','a+');
-    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
-    fprintf(fileID,formatSpec,(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,output.iterations,output.info,order,size(Wres),rank,nonlin,optimizer);
+    formatSpec = strcat('\n %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
+    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,nonlin,optimizer);
     fclose(fileID);
     
 elseif exist('log.txt', 'file') == 2 % when file exists
     fileID = fopen('log.txt','a+');
     
     % if I still want to write header when file exists...
-%     formatSpec = '\n Rel. train err. || Rel. test err. || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer';
-%     fprintf(fileID,formatSpec);
-%     fclose(fileID);
+    formatSpec = '\n Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer';
+    fprintf(fileID,formatSpec);
+    fclose(fileID);
     
     dimformat = string('%dx');
     for ii=1:length(size(Wres))-1
@@ -98,8 +93,8 @@ elseif exist('log.txt', 'file') == 2 % when file exists
     end
     
     fileID = fopen('log.txt','a+');
-    formatSpec = strcat('\n %4.2f || %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
-    fprintf(fileID,formatSpec,(norm(ErrTr)/length(Xtr)),(norm(ErrTest)/length(Xte)),time,output.iterations,output.info,order,size(Wres),rank,nonlin,optimizer);
+    formatSpec = strcat('\n %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
+    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,nonlin,optimizer);
     fclose(fileID);
     
 else % any other case
