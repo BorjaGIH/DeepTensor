@@ -2,8 +2,9 @@
 clearvars; close all; clc
 
 % create lscpd problem
-size_tens = [1000 9 8 7]; R = 3;
-U = cpd_rnd(size_tens(2:end),R);
+% size_tens = [1000 9 8 7]; R = 3;
+size_tens = [10 2 2 2]; R = 2;
+U = cpd_rnd(size_tens(2:end),R)
 A = randn(size_tens(1),prod(size_tens(2:end)));
 b = A*tens2vec(ful(U));
 
