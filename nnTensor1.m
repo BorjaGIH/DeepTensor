@@ -5,15 +5,17 @@ rng(1);
 
 %% Create feature dataset and multivariate output
 numfeat = 4;             % Number of features. numfeat+1 is the dimension(s) of the tensor
-numpoints = 100;         % Number of datapoints (each datapoint has numfeat values)
+numpoints = 150;         % Number of datapoints (each datapoint has numfeat values)
 order = 5;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
 lambda = 1e8;            % Regularization parameter
 X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
 rank = 3;                % rank of the tensor, for constraint/efficient representation
-options.MaxIter = 100;   % optimization iterations
-nonlin = true;           % learned function is nonlinear. 1 or 0
+options.MaxIter = 300;   % optimization iterations
+nonlin = true;           % learned function is nonlinear
+regfactor = 1e-6;        % factor to apply to the initial value of the tensor.
 
-% Multiple Input Single Output (MISO)
+
+% Y output. MISO case
 for ii = 1:numpoints
     Ys(ii) = f1(X(ii,:),nonlin); % Output: univariate nonlinear combination of the inputs
 end
@@ -33,7 +35,6 @@ Yste = Ys(1:sizete*numpoints);
 % Order of the tensor: numfeat. Dimensions: numfeat 
 tic % time
 initvec = repmat(numfeat+1,1,order);
-regfactor = 1e-6;
 W0 = regfactor*rand(initvec); % Dense random tensor
 % To do: find good initial point
 
