@@ -7,6 +7,7 @@ properties
     numfeat % number of features 
     order   % order of the tensor
     rank    % rank of the tensor for decomposition (constraint/efficient representation)
+    % small change to check version control
 end
 
 methods
