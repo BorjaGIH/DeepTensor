@@ -1,6 +1,7 @@
 clearvars; close all;
 rng(1);
 % https://github.com/BorjaGIH/DeepTensor
+% branch master
 
 %% Create feature dataset and multivariate output
 numfeat = 4; % Number of features. numfeat+1 is the dimension(s) of the tensor
