@@ -29,44 +29,10 @@ Ystr = Ys(1:sizetr*numpoints); % MISO
 Xte = X(1:sizete*numpoints,:);
 Yste = Ys(1:sizete*numpoints);
 
-%% Create tensor and find "good" initial point
-% Order of the tensor: numfeat. Dimensions: numfeat 
-tic % time
-initvec = repmat(numfeat+1,1,order);
-regfactor = 1e-6;
-W0 = regfactor*rand(initvec); % Dense random tensor
-% To do: find good initial point
-
 %% Create initial U0
 tic % time
 size_tens = [numpoints numfeat+1 numfeat+1 numfeat+1];
 U0 = cpd_rnd(size_tens(2:end),rank);
-
-%% Optimization using kernel
-% [U0,~] = cpd(W0,rank); % factorize and ensure we take a rank smaller than that estimated by rankest
-% % R = rankest(W0);
-% % if rank>R
-% %     rank = R;
-% %     disp(['Inputed rank is bigger than estimated by rankest, so it has been changed '])
-% % end
-% 
-% kernel = Kernel1(Xtr,Ystr,lambda,numfeat,order,rank); % create kernel
-% kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = W0. lambda is the reg. parameter
-% 
-% %%%%%%%% Notes %%%%%%%%
-% % Rank of the reconstructed solution tensor is 1, instead of "rank"
-% % Check if this is normal, seeing that the optimization variables are the
-% % factor matrices.
-% 
-% % some optimization process options
-% options.TolFun = 1e-20; 
-% % options.Display = 10;
-% % options.TolX = 1e-20;
-% 
-% optimizer = 'minf_lbfgsdl'; % this must coincide with the used function
-% [Ures,output] = minf_lbfgsdl(@kernel.objfun, @kernel.grad, U0, options); % Minimize
-% Wres = cpdgen(Ures); % reconstruct tensor from factors
-% time = toc;
 
 %% Optimization LS-CPD
 optimizer = 'ls-cpd nls';
