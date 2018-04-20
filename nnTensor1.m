@@ -22,10 +22,12 @@ for ii = 1:numpoints  % Y output. Created as mode-n prod. with tensor
 end
 Y = Y';
 
-%% Create initial U0 random
+%% Create initial U0
 tic % time
-U0 = cpd_rnd(size_tens(2:end),rank);
-% Try using real tensor plus noise, to see behavior
+% U0 = cpd_rnd(size_tens(2:end),rank); % totally random
+U0 = U;
+% U0 = ful(U) + 0.00000000001*ful(cpd_rnd(size_tens(2:end),rank)); % true ground + noise. careful, how does the rank affect?
+% [U0,~] = cpd(U0,rank);
 
 %% Optimization LS-CPD
 optimizer = 'ls-cpd/nls_gndl';
@@ -35,8 +37,9 @@ b = Y;
 % Solver options (default algorithm is nls_gndl
 options.Display = true;
 options.TolFun = eps^2;
-options.TolX = eps;
+options.TolX = eps; % Caution, can this be smaller than eps?
 options.MaxIter = 300; % default 200
+options.TolAbs = eps; % ??
 % options.CGMaxIter = prod(size_tens(2:end));
 
 % compute solution
@@ -47,8 +50,8 @@ time = toc;
 
 %% Tests
 % Train set
-Err = (frob(W)-frob(Wres))/frob(W)
-disp(['Relative error (tensor) in train set: ',Err])
+Err = frob(ful(W)-ful(Wres))/frob(ful(W));
+disp(['Relative error (tensor, frobenius norm): ',num2str(Err)])
 
 %% Log file
 % if exist('log.txt', 'file') ~= 2 % when file does not exist
