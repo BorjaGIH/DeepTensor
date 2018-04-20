@@ -25,6 +25,7 @@ Y = Y';
 %% Create initial U0 random
 tic % time
 U0 = cpd_rnd(size_tens(2:end),rank);
+% Try using real tensor plus noise, to see behavior
 
 %% Optimization LS-CPD
 optimizer = 'ls-cpd/nls_gndl';
