@@ -1,7 +1,6 @@
 function [A] = coeffMatrix(numfeat, order, X)
     indx = cell(1,order);
     indVec = zeros((numfeat+1)^order,order);
-%     X = [ones(size(X,1),1),X];
     A = zeros(size(X,1),(numfeat+1)^order);
 
 %     for ii=1:numel(ful(U))   % alternative, check what is faster
@@ -11,7 +10,7 @@ function [A] = coeffMatrix(numfeat, order, X)
     end
     
     for ii=1:size(X,1)
-        xii = [1, X(ii,:)];
+        xii = X(ii,:);
         for jj=1:size(indVec,1)
             A(ii,jj) = prod(xii(indVec(jj,:)));
         end
