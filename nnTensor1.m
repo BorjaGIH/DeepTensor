@@ -28,12 +28,12 @@ perturbation = cpd_rnd(size_tens(2:end),rank);  % true solution + noise
 for ii=1:length(U)
     U0{ii} = U{ii} + factor*perturbation{ii};
 end
-U0 = cpd_rnd(size_tens(2:end),rank); % totally random
-U0 = U; % exactly same initial point
+% U0 = cpd_rnd(size_tens(2:end),rank); % totally random
+% U0 = U; % exactly same initial point
 
 %% Optimization using kernel
 
-kernel = Kernel1(Xtr,Ystr,lambda,numfeat,order,rank); % create kernel
+kernel = Kernel1(X,Y,numfeat,order,rank); % create kernel
 kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = W0. lambda is the reg. parameter
 
 %%%%%%%% Notes %%%%%%%%
@@ -43,7 +43,7 @@ kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = W
 
 % optimization process options
 options.TolFun = eps; 
-options.MaxIter = 2000;
+options.MaxIter = 300;
 options.TolX = eps;
 
 optimizer = 'minf_lbfgs'; % this must coincide with the used function
@@ -51,8 +51,8 @@ optimizer = 'minf_lbfgs'; % this must coincide with the used function
 time = toc;
 
 %% Tests
-Err = frob(ful(U)-ful(Ures))/frob(U)
-disp(['Relative error (tensor) frob norm: ',Err])
+Err = frob(ful(U)-ful(Ures))/frob(U);
+disp(['Relative error (tensor) frob norm: ',num2str(Err)])
 
 %% Log file
 % if exist('log.txt', 'file') ~= 2 % when file does not exist

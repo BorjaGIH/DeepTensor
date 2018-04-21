@@ -12,28 +12,26 @@ end
 
 methods
 
-function this = Kernel1(x, y, lambda, numfeat, order, rank) % constructor
+function this = Kernel1(x, y, numfeat, order, rank) % constructor
     this.x = x;
     this.y = y;
-    this.lambda = lambda;
     this.numfeat = numfeat;
     this.order = order;
     this.rank = rank;
 end
 
 function fval = objfun(this,z) % objective function
-%     X = this.x;
-    X = [ones(size(this.x,1),1),this.x];
+    X = this.x;
     Y = this.y;
     Yest = zeros(length(X),1);
-    % CHECK FOR CORRECTNES!!
     for ii=1:length(Yest) % loop through all datapoints
-        for r=1:size(z{1},2)
-            for jj=1:size(z,2)
-                tmp(jj) = sum(z{jj}(:,r)'.*X(ii,:));
+        for r=1:this.rank % rank
+            for n=1:this.order % order
+                tmp(n) = dot(z{n}(:,r),X(ii,:));
             end
-            Yest(ii) = prod(tmp);
+            tmp2(r) = prod(tmp);
         end
+        Yest(ii) = sum(tmp2);
     end
     fval = (1/2)*sum((Y-Yest).^2); % no regularization
 end 
