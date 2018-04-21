@@ -10,7 +10,7 @@ order = 3;               % Order of the tensor. "order" is degree of the polynom
 X = 4*rand(numpoints,numfeat); % Input data, numpoints x numfeat matrix
 X = [ones(numpoints,1) X]; % Add bias term
 rank = 3;                % Rank of the tensor, for constraint/efficient representation
-factor = 1e-8;           % factor to multiply tensor, for "good" initial point (temporary). SNR = abs(exponent)
+factor = 1e-4;           % factor to multiply tensor, for "good" initial point (temporary). SNR = abs(exponent)
 
 size_tens = [numpoints repmat(numfeat+1,1,order)];
 U = cpd_rnd(size_tens(2:end),rank);
@@ -24,11 +24,11 @@ Y = Y';
 
 %% Create initial U0
 tic % time
-% U0 = cpd_rnd(size_tens(2:end),rank); % totally random
 perturbation = cpd_rnd(size_tens(2:end),rank);  % true solution + noise
 for ii=1:length(U)
     U0{ii} = U{ii} + factor*perturbation{ii};
 end
+U0 = cpd_rnd(size_tens(2:end),rank); % totally random
 % U0 = U; % exactly same initial point
 
 %% Optimization LS-CPD
@@ -40,7 +40,7 @@ b = Y;
 options.Display = true;
 options.TolFun = eps^2;
 options.TolX = eps; % Caution, can this be smaller than eps?
-options.MaxIter = 1000; % default 200
+options.MaxIter = 2000; % default 200
 options.TolAbs = eps; % ??
 % options.CGMaxIter = prod(size_tens(2:end));
 
