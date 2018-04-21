@@ -7,42 +7,31 @@ rng(1);
 numfeat = 4;             % Number of features. numfeat+1 is the dimension(s) of the tensor
 numpoints = 150;         % Number of datapoints (each datapoint has numfeat values)
 order = 3;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
-X = randi(10,numpoints,numfeat); % Input data, numpoints x numfeat matrix
-rank = 3;                % rank of the tensor, for constraint/efficient representation
-options.MaxIter = 300;   % optimization iterations
+X = 4*rand(numpoints,numfeat); % Input data, numpoints x numfeat matrix
+X = [ones(numpoints,1) X]; % Add bias term
+rank = 3;                % Rank of the tensor, for constraint/efficient representation
+factor = 1e-4;           % factor to multiply tensor, for "good" initial point (temporary). SNR = abs(exponent)
 
-% Y output. Created as mode-n prod. with tensor
-initvec = repmat(numfeat+1,1,order);
-W = rand(initvec); % Dense random "TRUE" tensor
+size_tens = [numpoints repmat(numfeat+1,1,order)];
+U = cpd_rnd(size_tens(2:end),rank); % "true" tensor
+W = cpdgen(U);
 
-for ii = 1:numpoints
-    U = Umat2(X(ii,:),order);
-    Ys(ii) = tmprod(W,U,(1:order));
+for ii = 1:numpoints  % Y output. Created as mode-n prod. with tensor
+    Un = Umat2(X(ii,:),order);
+    Y(ii) = tmprod(W,Un,(1:order));
 end
-Ys = Ys';
+Y = Y';
 
-% Divide dataset for train and test
-sizetr = 0.7;
-sizete = 0.3;
-
-Xtr = X(1:sizetr*numpoints,:);
-Ystr = Ys(1:sizetr*numpoints); % MISO
-
-Xte = X(1:sizete*numpoints,:);
-Yste = Ys(1:sizete*numpoints);
-
-%% Create initial random tensor/find "good" initial point
+%% Create initial U0
 tic % time
-W0 = rand(initvec); % Dense random initial tensor
-% To do: find good initial point
+perturbation = cpd_rnd(size_tens(2:end),rank);  % true solution + noise
+for ii=1:length(U)
+    U0{ii} = U{ii} + factor*perturbation{ii};
+end
+U0 = cpd_rnd(size_tens(2:end),rank); % totally random
+U0 = U; % exactly same initial point
 
 %% Optimization using kernel
-[U0,~] = cpd(W0,rank); % factorize and ensure we take a rank smaller than that estimated by rankest
-% R = rankest(W0);
-% if rank>R
-%     rank = R;
-%     disp(['Inputed rank is bigger than estimated by rankest, so it has been changed '])
-% end
 
 kernel = Kernel1(Xtr,Ystr,lambda,numfeat,order,rank); % create kernel
 kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = W0. lambda is the reg. parameter
@@ -52,55 +41,54 @@ kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = W
 % Check if this is normal, seeing that the optimization variables are the
 % factor matrices.
 
-% some optimization process options
-options.TolFun = 1e-20; 
-% options.Display = 10;
-% options.TolX = 1e-20;
+% optimization process options
+options.TolFun = eps; 
+options.MaxIter = 2000;
+options.TolX = eps;
 
-optimizer = 'minf_lbfgsdl'; % this must coincide with the used function
-[Ures,output] = minf_lbfgsdl(@kernel.objfun, @kernel.grad, U0, options); % Minimize
-Wres = cpdgen(Ures); % reconstruct tensor from factors
+optimizer = 'minf_lbfgs'; % this must coincide with the used function
+[Ures,output] = minf_lbfgs(@kernel.objfun, @kernel.grad, U0, options); % Minimize
 time = toc;
 
 %% Tests
-Err = (frob(W)-frob(Wres))/frob(W)
+Err = frob(ful(U)-ful(Ures))/frob(U)
 disp(['Relative error (tensor) frob norm: ',Err])
 
 %% Log file
-if exist('log.txt', 'file') ~= 2 % when file does not exist
-    fileID = fopen('log.txt','w');
-    formatSpec = ' Rel. error || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer ||';
-    fprintf(fileID,formatSpec);
-    fclose(fileID);
-    
-    dimformat = string('%dx');
-    for ii=1:length(size(Wres))-1
-        dimformat = strcat(dimformat,'%dx');
-    end
-    
-    fileID = fopen('log.txt','a+');
-    formatSpec = strcat('\n %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
-    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,nonlin,optimizer);
-    fclose(fileID);
-    
-elseif exist('log.txt', 'file') == 2 % when file exists
-    fileID = fopen('log.txt','a+');
-    
-    % if I still want to write header when file exists...
-    formatSpec = '\n Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer';
-    fprintf(fileID,formatSpec);
-    fclose(fileID);
-    
-    dimformat = string('%dx');
-    for ii=1:length(size(Wres))-1
-        dimformat = strcat(dimformat,'%dx');
-    end
-    
-    fileID = fopen('log.txt','a+');
-    formatSpec = strcat('\n %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
-    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,nonlin,optimizer);
-    fclose(fileID);
-    
-else % any other case
-    disp('*** Error in writing file ***')
-end
+% if exist('log.txt', 'file') ~= 2 % when file does not exist
+%     fileID = fopen('log.txt','w');
+%     formatSpec = ' Rel. error || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer ||';
+%     fprintf(fileID,formatSpec);
+%     fclose(fileID);
+%     
+%     dimformat = string('%dx');
+%     for ii=1:length(size(Wres))-1
+%         dimformat = strcat(dimformat,'%dx');
+%     end
+%     
+%     fileID = fopen('log.txt','a+');
+%     formatSpec = strcat('\n %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
+%     fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,nonlin,optimizer);
+%     fclose(fileID);
+%     
+% elseif exist('log.txt', 'file') == 2 % when file exists
+%     fileID = fopen('log.txt','a+');
+%     
+%     % if I still want to write header when file exists...
+%     formatSpec = '\n Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer';
+%     fprintf(fileID,formatSpec);
+%     fclose(fileID);
+%     
+%     dimformat = string('%dx');
+%     for ii=1:length(size(Wres))-1
+%         dimformat = strcat(dimformat,'%dx');
+%     end
+%     
+%     fileID = fopen('log.txt','a+');
+%     formatSpec = strcat('\n %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
+%     fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,nonlin,optimizer);
+%     fclose(fileID);
+%     
+% else % any other case
+%     disp('*** Error in writing file ***')
+% end
