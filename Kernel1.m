@@ -24,14 +24,24 @@ function fval = objfun(this,z) % objective function
     X = this.x;
     Y = this.y;
     Yest = zeros(length(X),1);
+
+    % Construct matrix stacking rows
+    for jj=1:this.rank
+    b1 = [z{1}(:,jj)';zeros(this.order-1,this.numfeat+1)]; % block
+    for ii=2:this.order
+        b1 = [b1, [zeros(ii-1,this.numfeat+1);z{ii}(:,jj)';zeros(this.order-ii,this.numfeat+1)]]; % jj is the rank
+    end
+    if jj==1
+        M1 = b1; % matrix (M1)
+    else
+        M1 = [M1;b1];
+    end
+    end    
+    
     for ii=1:length(Yest) % loop through all datapoints
-        for r=1:this.rank % rank
-            for n=1:this.order % order
-                tmp(n) = dot(z{n}(:,r),X(ii,:));
-            end
-            tmp2(r) = prod(tmp);
-        end
-        Yest(ii) = sum(tmp2);
+        xii = repmat(X(ii,:),1,this.order )';
+        res = reshape(M1*xii,this.order,this.rank);
+        Yest(ii) = sum(prod(res,1));
     end
     fval = (1/2)*sum((Y-Yest).^2); % no regularization
 end 

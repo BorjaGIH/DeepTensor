@@ -4,9 +4,9 @@ rng(1);
 % PD_constraint_dataTensor branch
 
 %% Create feature dataset and multivariate output
-numfeat = 4;             % Number of features. numfeat+1 is the dimension(s) of the tensor
-numpoints = 150;         % Number of datapoints (each datapoint has numfeat values)
-order = 3;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
+numfeat = 9;             % Number of features. numfeat+1 is the dimension(s) of the tensor
+numpoints = 100;         % Number of datapoints (each datapoint has numfeat values)
+order = 4;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
 X = 4*rand(numpoints,numfeat); % Input data, numpoints x numfeat matrix
 X = [ones(numpoints,1) X]; % Add bias term
 rank = 3;                % Rank of the tensor, for constraint/efficient representation
