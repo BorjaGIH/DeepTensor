@@ -1,15 +1,15 @@
-clearvars; close all;
+clearvars; close all; clc;
 rng(1);
 % https://github.com/BorjaGIH/DeepTensor
 % PD_constraint_dataTensor branch
 
 %% Create feature dataset and multivariate output
-numfeat = 9;             % Number of features. numfeat+1 is the dimension(s) of the tensor
+numfeat = 19;             % Number of features. numfeat+1 is the dimension(s) of the tensor
 numpoints = 100;         % Number of datapoints (each datapoint has numfeat values)
-order = 4;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
+order = 6;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
 X = 4*rand(numpoints,numfeat); % Input data, numpoints x numfeat matrix
 X = [ones(numpoints,1) X]; % Add bias term
-rank = 3;                % Rank of the tensor, for constraint/efficient representation
+rank = 4;                % Rank of the tensor, for constraint/efficient representation
 factor = 1e-4;           % factor to multiply tensor, for "good" initial point (temporary). SNR = abs(exponent)
 
 size_tens = [numpoints repmat(numfeat+1,1,order)];
@@ -35,11 +35,6 @@ end
 
 kernel = Kernel1(X,Y,numfeat,order,rank); % create kernel
 kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = W0. lambda is the reg. parameter
-
-%%%%%%%% Notes %%%%%%%%
-% Rank of the reconstructed solution tensor is 1, instead of "rank"
-% Check if this is normal, seeing that the optimization variables are the
-% factor matrices.
 
 % optimization process options
 options.TolFun = eps; 

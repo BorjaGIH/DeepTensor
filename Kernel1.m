@@ -23,24 +23,42 @@ end
 function fval = objfun(this,z) % objective function
     X = this.x;
     Y = this.y;
-    Yest = zeros(length(X),1);
+    npoints = length(X);
+    Yest = zeros(npoints,1);
 
-    % Construct matrix stacking rows
+    % Construct small matrix stacking rows
     for jj=1:this.rank
     b1 = [z{1}(:,jj)';zeros(this.order-1,this.numfeat+1)]; % block
     for ii=2:this.order
         b1 = [b1, [zeros(ii-1,this.numfeat+1);z{ii}(:,jj)';zeros(this.order-ii,this.numfeat+1)]]; % jj is the rank
     end
     if jj==1
-        M1 = b1; % matrix (M1)
+        m1 = b1; % matrix (M1)
     else
-        M1 = [M1;b1];
+        m1 = [m1;b1];
     end
-    end    
+    end
     
-    for ii=1:length(Yest) % loop through all datapoints
-        xii = repmat(X(ii,:),1,this.order )';
-        res = reshape(M1*xii,this.order,this.rank);
+    % construct big matrix that "loops" over datapoints
+%     v = repmat(m1,1,npoints);
+%     v = mat2cell(v,this.rank*this.order,repmat((this.numfeat+1)*this.order,1,npoints));
+%     M1 = blkdiag(v{:});
+%     
+%     % multiply
+%     xii = repmat(X,1,this.order);
+%     Xii = reshape(xii,numel(xii),1);
+%     Ytmp = M1*Xii;
+%     
+%     % reshape for operating for final value
+%     Ytmp = reshape(Ytmp,this.order,this.rank,npoints);
+%     Ytmp = prod(Ytmp,1);
+%     Yest = reshape(sum(Ytmp,2),npoints,1);
+    
+    Xii = repmat(X,1,this.order);
+    for ii=1:npoints % loop through all datapoints
+        xii = Xii(ii,:)';
+        tmp = m1*xii;
+        res = reshape(tmp,this.order,this.rank);
         Yest(ii) = sum(prod(res,1));
     end
     fval = (1/2)*sum((Y-Yest).^2); % no regularization
