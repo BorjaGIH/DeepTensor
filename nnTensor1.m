@@ -4,15 +4,15 @@ rng(1);
 % LS_CPD branch
 
 %% Create feature dataset and output
-numfeat = 9;             % Number of features. numfeat+1 is the dimension(s) of the tensor
+numfeat = 10;             % Number of features. numfeat is the dimension(s) of the tensor
 numpoints = 150;         % Number of datapoints (each datapoint has numfeat values)
 order = 4;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
-X = 4*rand(numpoints,numfeat); % Input data, numpoints x numfeat matrix
+X = 4*rand(numpoints,numfeat-1); % Input data, numpoints x numfeat matrix
 X = [ones(numpoints,1) X]; % Add bias term
 rank = 3;                % Rank of the tensor, for constraint/efficient representation
 factor = 1e-4;           % factor to multiply tensor, for "good" initial point (temporary). SNR = abs(exponent)
 
-size_tens = [numpoints repmat(numfeat+1,1,order)];
+size_tens = [numpoints repmat(numfeat,1,order)];
 U = cpd_rnd(size_tens(2:end),rank);
 W = cpdgen(U);
 
