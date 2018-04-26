@@ -15,3 +15,11 @@
  3.462e+01 || 41.07 || 2000 || 3 || 4 ||10x10x10x10x || 3 || 100 || ls-cpd/nls_gndl
  Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer
  5.418e-04 || 34.94 || 1671 || 4 || 4 ||10x10x10x10x || 3 || 100 || ls-cpd/nls_gndl
+ Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer
+ 2.210e-11 || 39.92 || 1192 || 4 || 4 ||10x10x10x10x || 3 || 150 || ls-cpd/nls_gndl
+ Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer
+ 1.151e-11 || 3.92 || 39 || 4 || 4 ||10x10x10x10x || 3 || 150 || ls-cpd/nls_gndl
+ Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer
+ 1.151e-11 || 3.93 || 39 || 4 || 4 ||10x10x10x10x || 3 || 150 || ls-cpd/nls_gndl
+ Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer
+ 4.421e-12 || 2.92 || 9 || 4 || 4 ||10x10x10x10x || 3 || 150 || ls-cpd/nls_gndl

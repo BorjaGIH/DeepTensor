@@ -5,7 +5,7 @@ rng(1);
 
 %% Create feature dataset and output
 numfeat = 9;             % Number of features. numfeat+1 is the dimension(s) of the tensor
-numpoints = 100;         % Number of datapoints (each datapoint has numfeat values)
+numpoints = 150;         % Number of datapoints (each datapoint has numfeat values)
 order = 4;               % Order of the tensor. "order" is degree of the polynomial that tensor product achieves
 X = 4*rand(numpoints,numfeat); % Input data, numpoints x numfeat matrix
 X = [ones(numpoints,1) X]; % Add bias term
@@ -44,7 +44,7 @@ options.TolFun = eps^2;
 options.TolX = eps; % Caution, can this be smaller than eps?
 options.MaxIter = 2000; % default 200
 options.TolAbs = eps; % ??
-% options.CGMaxIter = prod(size_tens(2:end));
+options.CGMaxIter = 120;
 
 % compute solution
 [Ures,output] = lscpd_nls(A,b,U0,options);
