@@ -68,12 +68,12 @@ if exist('log2.txt', 'file') ~= 2 % when file does not exist
     end
     
     fileID = fopen('log2.txt','a+');
-    formatSpec = strcat('\n %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %10s');
+    formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %10s');
     fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,optimizer);
     fclose(fileID);
     
 elseif exist('log2.txt', 'file') == 2 % when file exists
-    fileID = fopen('log.txt','a+');
+    fileID = fopen('log2.txt','a+');
     
     % if I still want to write header when file exists...
 %     formatSpec = '\n Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer';
@@ -86,7 +86,7 @@ elseif exist('log2.txt', 'file') == 2 % when file exists
     end
     
     fileID = fopen('log2.txt','a+');
-    formatSpec = strcat('\n %4.2f || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %10s');
+    formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %10s');
     fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,optimizer);
     fclose(fileID);
     
