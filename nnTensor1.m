@@ -81,7 +81,7 @@ elseif exist('log3.txt', 'file') == 2 % when file exists
         dimformat = strcat(dimformat,'%dx');
     end
     
-    fileID = fopen('log3.txt','a+');
+%     fileID = fopen('log3.txt','a+');
     formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %10s');
     fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,optimizer);
     fclose(fileID);
