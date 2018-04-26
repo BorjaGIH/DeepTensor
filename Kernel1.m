@@ -28,9 +28,9 @@ function fval = objfun(this,z) % objective function
 
     % Construct small matrix stacking rows
     for jj=1:this.rank
-    b1 = [z{1}(:,jj)';zeros(this.order-1,this.numfeat+1)]; % block
+    b1 = [z{1}(:,jj)';zeros(this.order-1,this.numfeat)]; % block
     for ii=2:this.order
-        b1 = [b1, [zeros(ii-1,this.numfeat+1);z{ii}(:,jj)';zeros(this.order-ii,this.numfeat+1)]]; % jj is the rank
+        b1 = [b1, [zeros(ii-1,this.numfeat);z{ii}(:,jj)';zeros(this.order-ii,this.numfeat)]]; % jj is the rank
     end
     if jj==1
         m1 = b1; % matrix (M1)
