@@ -54,7 +54,7 @@ disp(['Relative error (tensor) frob norm: ',num2str(Err)])
 %% Log file
 if exist('log3.txt', 'file') ~= 2 % when file does not exist
     fileID = fopen('log3.txt','w');
-    formatSpec = ' Rel. error || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Optimizer ||';
+    formatSpec = ' Rel. error || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer ||';
     fprintf(fileID,formatSpec);
     fclose(fileID);
     
@@ -64,26 +64,24 @@ if exist('log3.txt', 'file') ~= 2 % when file does not exist
     end
     
     fileID = fopen('log3.txt','a+');
-    formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %10s');
-    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,optimizer);
+    formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
+    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,numpoints,optimizer);
     fclose(fileID);
     
 elseif exist('log3.txt', 'file') == 2 % when file exists
     fileID = fopen('log3.txt','a+');
     
     % if I still want to write header when file exists...
-%     formatSpec = '\n Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Optimizer';
+%     formatSpec = '\n Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer';
 %     fprintf(fileID,formatSpec);
-%     fclose(fileID);
     
     dimformat = string('%dx');
     for ii=1:length(size(Wres))-1
         dimformat = strcat(dimformat,'%dx');
     end
-    
-%     fileID = fopen('log3.txt','a+');
-    formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %10s');
-    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,optimizer);
+
+    formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
+    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,numpoints,optimizer);
     fclose(fileID);
     
 else % any other case
