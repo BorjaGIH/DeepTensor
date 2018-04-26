@@ -80,3 +80,4 @@
  -0.78 || 2.16 || 300 || 3 || 2 ||5x5x || 3 || 1 || ls-cpd nls
  Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nonlin. f || Optimizer
  -0.78 || 1.94 || 300 || 3 || 2 ||5x5x || 3 || 1 || ls-cpd nls
+ 0.00 || 95.51 || 239 || 2 || 4 ||10x10x10x10x || 3 || minf_lbfgs
