@@ -1,0 +1,3 @@
+ Rel. error || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Optimizer ||
+ 0.00 || 63.98 || 239 || 2 || 4 ||10x10x10x10x || 3 || minf_lbfgs
+ 4.542e-05 || 63.88 || 239 || 2 || 4 ||10x10x10x10x || 3 || minf_lbfgs
