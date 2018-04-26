@@ -1,0 +1,5 @@
+ Rel. error || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Optimizer ||
+ 1.29 || 8.29 || 370 || 4 || 4 ||8x8x8x8x || 3 || ls-cpd/nls_gndl
+ 1.78 || 19.96 || 2000 || 3 || 3 ||10x10x10x || 3 || ls-cpd/nls_gndl
+ 0.00 || 40.98 || 1192 || 4 || 4 ||10x10x10x10x || 3 || ls-cpd/nls_gndl
+ 0.00 || 8.59 || 200 || 3 || 4 ||10x10x10x10x || 3 || ls-cpd/nls_gndl
