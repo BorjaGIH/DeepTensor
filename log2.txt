@@ -27,3 +27,5 @@
  4.421e-12 || 3.02 || 9 || 4 || 4 ||10x10x10x10x || 3 || 150 || ls-cpd/nls_gndl
  Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer
  4.421e-12 || 2.97 || 9 || 4 || 4 ||10x10x10x10x || 3 || 150 || ls-cpd/nls_gndl
+ Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer
+ 4.421e-12 || 2.97 || 9 || 4 || 4 ||10x10x10x10x || 3 || 150 || ls-cpd/nls_gndl

@@ -80,14 +80,14 @@ elseif exist('log2.txt', 'file') == 2 % when file exists
     % if I still want to write header when file exists...
     formatSpec = '\n Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer';
     fprintf(fileID,formatSpec);
-    fclose(fileID);
+%     fclose(fileID);
     
     dimformat = string('%dx');
     for ii=1:length(size(Wres))-1
         dimformat = strcat(dimformat,'%dx');
     end
     
-    fileID = fopen('log2.txt','a+');
+%     fileID = fopen('log2.txt','a+');
     formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
     fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size(Wres),rank,numpoints,optimizer);
     fclose(fileID);
