@@ -4,21 +4,21 @@ clearvars; close all; clc;
 % LS_CPD branch
 
 %% Parameters
-numfeat = 10;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
-order = 6;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
-R = 1;                          % Rank of the CPD representation
+numfeat = 15;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+order = 3;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
+R = 2;                          % Rank of the CPD representation
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
-factorY = 1e-8;                % factor for the noise in output
-factorT = 1e-10;                % factor for the noise in tensor
+factorY = 1e-2;                % factor for the noise in output
+factorT = 1e-2;                % factor for the noise in tensor
 factor0 = 2;                    % factor for the initial value
 Mmin = (numfeat*order-order+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
-numpoints = 300;                  % Number of datapoints (each datapoint has numfeat values)
+numpoints = 4000;                  % Number of datapoints (each datapoint has numfeat values)
 
 optimizer = 'ls-cpd/nls_gndl';  % optimizer and optimizer options
-options.Display = true;
+options.Display = 10;
 options.TolFun = eps^2;
 options.TolX = eps;
-options.MaxIter = 300;
+options.MaxIter = 50;
 options.TolAbs = eps;
 options.CGMaxIter = 60;
 
@@ -63,12 +63,6 @@ switch(noiseFlag)
         
     case('none')
         W = cpdgen(Utrue);
-%         for ii = 1:numpoints  % in principle obsolete method
-%             Un = repmat({X(ii,:)},1,order);
-%             Y(ii) = tmprod(W,Un,(1:order));
-%         end
-%         Y = Y';
-
         Un = repmat({X'},1,order);
         Y = mtkrprod(W,Un,0)';
     otherwise
@@ -82,10 +76,11 @@ tic  % start time
 U0 = cpd_rnd(size_tens(:),R);            % random
 
 % Compute A and b
-% A = coeffMatrix(numfeat, order, X);   % obsolete
-% A = Akron(X,order);                   % obsolete
 A = kr(repmat({X'},1,order))';
 b = Y;
+disp(['Size of A:',num2str(size(A))])
+disp(['rank of A:',num2str(rank(A))])
+
 
 %% Optimization LS-CPD
 [Ures,output] = lscpd_nls(A,b,U0,options);
