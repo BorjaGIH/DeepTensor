@@ -1,151 +1,144 @@
 clearvars; close all; clc;
-rng(1);
+% rng(1);
 % https://github.com/BorjaGIH/DeepTensor
 % LS_CPD branch
 
-%% Parameters, input and output data
-numfeat = 6;                % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
-numpoints = 100;            % Number of datapoints (each datapoint has numfeat values)
-order = 3;                  % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
-rank = 1;                   % Rank of the CPD representation
-noiseFlag = 'output';         % either 'output', 'tensor', 'both' or 'none' depending on where noise is
-factorY = 1e-2;              
-factorT = 1e-10;
-factor0 = 1e-1;
+%% Parameters
+numfeat = 10;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+order = 6;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
+R = 1;                          % Rank of the CPD representation
+noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
+factorY = 1e-8;                % factor for the noise in output
+factorT = 1e-10;                % factor for the noise in tensor
+factor0 = 2;                    % factor for the initial value
+Mmin = (numfeat*order-order+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
+numpoints = 300;                  % Number of datapoints (each datapoint has numfeat values)
 
-% Generate data and tensors
+optimizer = 'ls-cpd/nls_gndl';  % optimizer and optimizer options
+options.Display = true;
+options.TolFun = eps^2;
+options.TolX = eps;
+options.MaxIter = 300;
+options.TolAbs = eps;
+options.CGMaxIter = 60;
+
+%% Generate data and tensors
 X = 4*rand(numpoints,numfeat-1);            % X input
 X = [ones(numpoints,1) X];                  % add bias term
-size_tens = [numpoints repmat(numfeat,1,order)];
-Utrue = cpd_rnd(size_tens(2:end),rank);     % "true" tensor
-
-% good method
-% for ii = 1:numpoints
-%     Y2(ii) = mtkronprod(W,U,(1:order));
-% end
-% Y2 = Y2';
+size_tens = repmat(numfeat,1,order);
+Utrue = cpd_rnd(size_tens(:),R);         % "true" tensor
 
 % add noise where appropriate
 switch(noiseFlag)
     case('output')
         W = cpdgen(Utrue);
-        for ii = 1:numpoints
-            Un = Umat2(X(ii,:),order);
-            Y(ii) = tmprod(W,Un,(1:order));
-        end
+        Un = repmat({X'},1,order);
+        Y = mtkrprod(W,Un,0)';
         noiseY = factorY*rand(size(Y,2),1);
-        Y = Y' + noiseY;
+        Y = Y + noiseY;
         SNRo = 20*log10(norm(Y)/norm(noiseY))
         
     case('tensor')
-        pert = cpd_rnd(size_tens(2:end),rank);
+        pert = cpd_rnd(size_tens(:),R);
         for ii=1:length(Utrue)
             U{ii} = Utrue{ii} + factorT*pert{ii};
         end
         W = cpdgen(U);
-        for ii = 1:numpoints
-            Un = Umat2(X(ii,:),order);
-            Y(ii) = tmprod(W,Un,(1:order));
-        end
-        Y = Y';
+        Un = repmat({X'},1,order);
+        Y = mtkrprod(W,Un,0)';
         SNRt = 20*log10(frob(cpdgen(pert))/frob(W))
         
     case('both')
-        pert = cpd_rnd(size_tens(2:end),rank);
+        pert = cpd_rnd(size_tens(:),R);
         for ii=1:length(Utrue)
             U{ii} = Utrue{ii} + factorT*pert{ii};
         end
         W = cpdgen(U);
-        for ii = 1:numpoints
-            Un = Umat2(X(ii,:),order);
-            Y(ii) = tmprod(W,Un,(1:order));
-        end
+        Un = repmat({X'},1,order);
+        Y = mtkrprod(W,Un,0)';
         noiseY = factorY*rand(size(Y,2),1);
-        Y = Y' + noiseY;
+        Y = Y + noiseY;
         SNRo = 20*log10(norm(Y)/norm(noiseY))
         SNRt = 20*log10(frob(cpdgen(pert))/frob(W))
         
     case('none')
         W = cpdgen(Utrue);
-        for ii = 1:numpoints
-            Un = Umat2(X(ii,:),order);
-            Y(ii) = tmprod(W,Un,(1:order));
-        end
-        Y = Y';
+%         for ii = 1:numpoints  % in principle obsolete method
+%             Un = repmat({X(ii,:)},1,order);
+%             Y(ii) = tmprod(W,Un,(1:order));
+%         end
+%         Y = Y';
+
+        Un = repmat({X'},1,order);
+        Y = mtkrprod(W,Un,0)';
     otherwise
-        disp('*** Error in variable "noise" ***')
+        disp('*** Error in "noise" variable ***')
 end
 
+%% Initial value, A and b
+tic  % start time
 
-%% Initial value U0
-tic                                         % time
-pert = cpd_rnd(size_tens(2:end),rank);
-for ii=1:length(Utrue)
-    U0{ii} = Utrue{ii} + factor0*pert{ii}; % true solution + noise
-end
-U0 = cpd_rnd(size_tens(2:end),rank);        % totally random
-% U0 = U;                                   % exactly same initial point
+% Initial value
+U0 = cpd_rnd(size_tens(:),R);            % random
 
-%% Optimization: LS-CPD
-A = coeffMatrix(numfeat, order, X);         % build A coefficient matrix
+% Compute A and b
+% A = coeffMatrix(numfeat, order, X);   % obsolete
+% A = Akron(X,order);                   % obsolete
+A = kr(repmat({X'},1,order))';
 b = Y;
 
-b2 = A*tens2vec(cpdgen(Utrue),1);
-
-check = b-b2
-
-% Solver options (default algorithm is nls_gndl
-optimizer = 'ls-cpd/nls_gndl';
-options.Display = true;
-options.TolFun = eps^2;
-options.TolX = eps;                         % Caution, can this be smaller than eps?
-options.MaxIter = 2000;                     % default 200
-options.TolAbs = eps;                       % ??
-options.CGMaxIter = 10;
-
-% compute solution
+%% Optimization LS-CPD
 [Ures,output] = lscpd_nls(A,b,U0,options);
+time = toc;   % end time
 
-time = toc;
-
-%% Tests
-% Train set
-Err = frob(cpdgen(Utrue)-cpdgen(Ures))/frob(cpdgen(Utrue));
-disp(['Relative error (tensor, frobenius norm): ',num2str(Err)])
+%% Test
+Wres = cpdgen(Ures);
+for ii = 1:numpoints
+    Un = repmat({X(ii,:)},1,order);
+    Yres(ii) = tmprod(Wres,Un,(1:order));
+end
+Yres = Yres';
+        
+ErrT = frob(cpdgen(Utrue)-cpdgen(Ures))/frob(cpdgen(Utrue));        % Error in tensor
+ErrbA = norm(b-A*tens2vec(Wres,1))/norm(b);
+ErrbT = norm(b-Yres)/norm(b);
+disp(['Relative error (tensor, frobenius norm): ',num2str(ErrT)])
+disp(['Relative error (b, 2-norm, computed with A): ',num2str(ErrbA)])
+disp(['Relative error (b, 2-norm, computed with T): ',num2str(ErrbT)])
 
 %% Log file
-if exist('log2.txt', 'file') ~= 2 % when file does not exist
-    fileID = fopen('log2.txt','w');
-    formatSpec = ' Rel. error || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Nº datapoints || Optimizer ||';
-    fprintf(fileID,formatSpec);
-    fclose(fileID);
-    
-    dimformat = string('%dx');
-    for ii=1:length(size_tens)-2
-        dimformat = strcat(dimformat,'%dx');
-    end
-    
-    fileID = fopen('log2.txt','a+');
-    formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
-    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size_tens(2:end),rank,numpoints,optimizer);
-    fclose(fileID);
-    
-elseif exist('log2.txt', 'file') == 2 % when file exists
-    fileID = fopen('log2.txt','a+');
-    
-    % if I still want to write header when file exists...
-%     formatSpec = '\n Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer';
+% if exist('log2.txt', 'file') ~= 2 % when file does not exist
+%     fileID = fopen('log2.txt','w');
+%     formatSpec = ' Rel. error || Time (s) || Iterations || Stop info || Tensor order || Dimensions || Rank || Nº datapoints || Optimizer ||';
 %     fprintf(fileID,formatSpec);
-    
-    dimformat = string('%dx');
-    for ii=1:length(size_tens)-2
-        dimformat = strcat(dimformat,'%dx');
-    end
-    
-    formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
-    fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size_tens(2:end),rank,numpoints,optimizer);
-    fclose(fileID);
-    
-else % any other case
-    disp('*** Error in writing file ***')
-end
+%     fclose(fileID);
+%     
+%     dimformat = string('%dx');
+%     for ii=1:length(size_tens)-1
+%         dimformat = strcat(dimformat,'%dx');
+%     end
+%     
+%     fileID = fopen('log2.txt','a+');
+%     formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
+%     fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size_tens(:),rank,numpoints,optimizer);
+%     fclose(fileID);
+%     
+% elseif exist('log2.txt', 'file') == 2 % when file exists
+%     fileID = fopen('log2.txt','a+');
+%     
+%     % if I still want to write header when file exists...
+% %     formatSpec = '\n Rel. error || Time (s) || Iterations|| Stop info || Tensor order || Dimensions || Rank || Nº Datapoints || Optimizer';
+% %     fprintf(fileID,formatSpec);
+%     
+%     dimformat = string('%dx');
+%     for ii=1:length(size_tens)-1
+%         dimformat = strcat(dimformat,'%dx');
+%     end
+%     
+%     formatSpec = strcat('\n %4.3e || %4.2f || %d || %d || %d || ',dimformat, ' || %d || %d || %10s');
+%     fprintf(fileID,formatSpec,Err,time,output.iterations,output.info,order,size_tens(:),rank,numpoints,optimizer);
+%     fclose(fileID);
+%     
+% else % any other case
+%     disp('*** Error in writing file ***')
+% end
