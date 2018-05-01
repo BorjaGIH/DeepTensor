@@ -11,8 +11,10 @@ noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' de
 factorY = 1e-2;                % factor for the noise in output
 factorT = 1e-2;                % factor for the noise in tensor
 factor0 = 2;                    % factor for the initial value
+facX = 3;                       % factor for the inputs
 Mmin = (numfeat*order-order+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
 numpoints = 4000;                  % Number of datapoints (each datapoint has numfeat values)
+generator = 'function';            % either 'tensor' or 'function'
 
 optimizer = 'ls-cpd/nls_gndl';  % optimizer and optimizer options
 options.Display = 10;
@@ -23,50 +25,56 @@ options.TolAbs = eps;
 options.CGMaxIter = 60;
 
 %% Generate data and tensors
-X = 4*rand(numpoints,numfeat-1);            % X input
+X = facX*rand(numpoints,numfeat-1);            % X input
 X = [ones(numpoints,1) X];                  % add bias term
 size_tens = repmat(numfeat,1,order);
 Utrue = cpd_rnd(size_tens(:),R);         % "true" tensor
-
-% add noise where appropriate
-switch(noiseFlag)
-    case('output')
-        W = cpdgen(Utrue);
-        Un = repmat({X'},1,order);
-        Y = mtkrprod(W,Un,0)';
-        noiseY = factorY*rand(size(Y,2),1);
-        Y = Y + noiseY;
-        SNRo = 20*log10(norm(Y)/norm(noiseY))
-        
-    case('tensor')
-        pert = cpd_rnd(size_tens(:),R);
-        for ii=1:length(Utrue)
-            U{ii} = Utrue{ii} + factorT*pert{ii};
-        end
-        W = cpdgen(U);
-        Un = repmat({X'},1,order);
-        Y = mtkrprod(W,Un,0)';
-        SNRt = 20*log10(frob(cpdgen(pert))/frob(W))
-        
-    case('both')
-        pert = cpd_rnd(size_tens(:),R);
-        for ii=1:length(Utrue)
-            U{ii} = Utrue{ii} + factorT*pert{ii};
-        end
-        W = cpdgen(U);
-        Un = repmat({X'},1,order);
-        Y = mtkrprod(W,Un,0)';
-        noiseY = factorY*rand(size(Y,2),1);
-        Y = Y + noiseY;
-        SNRo = 20*log10(norm(Y)/norm(noiseY))
-        SNRt = 20*log10(frob(cpdgen(pert))/frob(W))
-        
-    case('none')
-        W = cpdgen(Utrue);
-        Un = repmat({X'},1,order);
-        Y = mtkrprod(W,Un,0)';
-    otherwise
-        disp('*** Error in "noise" variable ***')
+ 
+if strcmp(generator,'tensor')
+    % add noise where appropriate
+    switch(noiseFlag)
+        case('output')
+            W = cpdgen(Utrue);
+            Un = repmat({X'},1,order);
+            Y = mtkrprod(W,Un,0)';
+            noiseY = factorY*rand(size(Y,2),1);
+            Y = Y + noiseY;
+            SNRo = 20*log10(norm(Y)/norm(noiseY))
+            
+        case('tensor')
+            pert = cpd_rnd(size_tens(:),R);
+            for ii=1:length(Utrue)
+                U{ii} = Utrue{ii} + factorT*pert{ii};
+            end
+            W = cpdgen(U);
+            Un = repmat({X'},1,order);
+            Y = mtkrprod(W,Un,0)';
+            SNRt = 20*log10(frob(cpdgen(pert))/frob(W))
+            
+        case('both')
+            pert = cpd_rnd(size_tens(:),R);
+            for ii=1:length(Utrue)
+                U{ii} = Utrue{ii} + factorT*pert{ii};
+            end
+            W = cpdgen(U);
+            Un = repmat({X'},1,order);
+            Y = mtkrprod(W,Un,0)';
+            noiseY = factorY*rand(size(Y,2),1);
+            Y = Y + noiseY;
+            SNRo = 20*log10(norm(Y)/norm(noiseY))
+            SNRt = 20*log10(frob(cpdgen(pert))/frob(W))
+            
+        case('none')
+            W = cpdgen(Utrue);
+            Un = repmat({X'},1,order);
+            Y = mtkrprod(W,Un,0)';
+        otherwise
+            disp('*** Error in "noise" variable ***')
+    end
+ 
+elseif strcmp(generator,'function')
+    Y = genfun(X,order,numfeat);
+    Y = Y';
 end
 
 %% Initial value, A and b
@@ -81,25 +89,49 @@ b = Y;
 disp(['Size of A:',num2str(size(A))])
 disp(['rank of A:',num2str(rank(A))])
 
-
 %% Optimization LS-CPD
 [Ures,output] = lscpd_nls(A,b,U0,options);
 time = toc;   % end time
 
 %% Test
-Wres = cpdgen(Ures);
-for ii = 1:numpoints
-    Un = repmat({X(ii,:)},1,order);
-    Yres(ii) = tmprod(Wres,Un,(1:order));
+if strcmp(generator,'tensor')
+    % Plot of the error
+    Un = repmat({X'},1,order);
+    for ii=1:length(output.z)
+        Yn = mtkrprod(ful(output.z{ii}),Un,0)';
+        err(ii) = norm(Y-Yn)/norm(Y);
+    end
+    semilogy(err); xlabel('Iteration'); ylabel('error');
+    
+    W0 = cpdgen(U0);
+    Y0 = mtkrprod(W0,Un,0)';
+    
+    Wres = cpdgen(Ures);
+    Yres = mtkrprod(Wres,Un,0)';
+    
+    ErrT = frob(W-Wres)/frob(W);        % Error in tensor
+    Err0 = norm(Y-Y0)/norm(Y);
+    ErrY = norm(Y-Yres)/norm(Y);
+    disp(['Relative error of tensor, frobenius norm: ',num2str(ErrT)])
+    disp(['Relative error of Y0, 2-norm, computed with Utrue: ',num2str(Err0)])
+    disp(['Relative error of Yest, 2-norm, computed with Ures: ',num2str(ErrY)])
+    
+elseif strcmp(generator,'function')
+    % Plot of the error
+    Un = repmat({X'},1,order);
+    for ii=1:length(output.z)
+        Yn = mtkrprod(ful(output.z{ii}),Un,0)';
+        err(ii) = norm(Y-Yn)/norm(Y);
+    end
+    semilogy(err); xlabel('Iteration'); ylabel('error');
+    
+    Un = repmat({X'},1,order);
+    Wres = cpdgen(Ures);
+    Yres = mtkrprod(Wres,Un,0)';
+    
+    ErrY = norm(Y-Yres)/norm(Y);
+    disp(['Relative error of Yest, 2-norm, computed with Ures: ',num2str(ErrY)])
 end
-Yres = Yres';
-        
-ErrT = frob(cpdgen(Utrue)-cpdgen(Ures))/frob(cpdgen(Utrue));        % Error in tensor
-ErrbA = norm(b-A*tens2vec(Wres,1))/norm(b);
-ErrbT = norm(b-Yres)/norm(b);
-disp(['Relative error (tensor, frobenius norm): ',num2str(ErrT)])
-disp(['Relative error (b, 2-norm, computed with A): ',num2str(ErrbA)])
-disp(['Relative error (b, 2-norm, computed with T): ',num2str(ErrbT)])
 
 %% Log file
 % if exist('log2.txt', 'file') ~= 2 % when file does not exist
