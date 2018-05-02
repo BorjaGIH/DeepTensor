@@ -20,7 +20,7 @@ optimizer = 'minf_lfbgs';  % optimizer and optimizer options
 options.Display = true;
 options.TolFun = eps;
 options.TolX = eps;
-options.MaxIter = 500;
+options.MaxIter = 1000;
 options.TolAbs = eps;
 
 %% Generate data and tensors
@@ -86,18 +86,14 @@ U0 = cpd_rnd(size_tens(:),R);            % random
 kernel = Kernel1(X,Y,numfeat,order,R); % create kernel
 kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
 
-[Ures,output] = minf_lbfgs2(@kernel.objfun, @kernel.grad, U0, options); % Minimize
+[Ures,output] = minf_lbfgs(@kernel.objfun, @kernel.grad, U0, options); % Minimize
 
 time = toc;
 
 %% Tests
 if strcmp(generator,'tensor')
     % Plot of the error
-    Un = repmat({X'},1,order);
-    for ii=1:length(output.z)
-        Yn = mtkrprod(ful(output.z{ii}),Un,0)';
-        err(ii) = norm(Y-Yn)/norm(Y);
-    end
+    err = (sqrt(output.fval*2))/norm(Y);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
     W0 = cpdgen(U0);
@@ -115,15 +111,11 @@ if strcmp(generator,'tensor')
     
 elseif strcmp(generator,'function')
     % Plot of the error
-    Un = repmat({X'},1,order);
-    for ii=1:length(output.z)
-        Yn = mtkrprod(ful(output.z{ii}),Un,0)';
-        err(ii) = norm(Y-Yn)/norm(Y);
-    end
+    err = (sqrt(output.fval*2))/norm(Y);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
-    Un = repmat({X'},1,order);
     Wres = cpdgen(Ures);
+    Un = repmat({X'},1,order);
     Yres = mtkrprod(Wres,Un,0)';
     
     ErrY = norm(Y-Yres)/norm(Y);
