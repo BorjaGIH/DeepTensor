@@ -51,7 +51,7 @@ function [U,output] = lscpd_nls(A, b, U0, varargin)
     % create helper functions and variables
     isfunc = @(f)isa(f,'function_handle');
     xsfunc = @(f)isfunc(f)&&exist(func2str(f),'file');
-    funcs = {@nls_gndl2,@nls_gncgs,@nls_lm}; % MODIFICATION BY BORJA VELASCO (nls_gndl2)
+    funcs = {@nls_gndl,@nls_gncgs,@nls_lm}; % MODIFICATION BY BORJA VELASCO (nls_gndl2)
     
     % parse options
     p = inputParser;
