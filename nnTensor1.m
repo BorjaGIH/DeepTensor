@@ -4,8 +4,8 @@ clearvars; close all; clc;
 % LS_CPD branch
 
 %% Parameters
-numfeat = 15;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
-order = 3;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
+numfeat = 10;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+order = 4;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
 R = 2;                          % Rank of the CPD representation
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
 factorY = 1e-2;                % factor for the noise in output
@@ -13,14 +13,16 @@ factorT = 1e-2;                % factor for the noise in tensor
 factor0 = 2;                    % factor for the initial value
 facX = 3;                       % factor for the inputs
 Mmin = (numfeat*order-order+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
-numpoints = 4000;                  % Number of datapoints (each datapoint has numfeat values)
+numpoints = 15;                  % Number of datapoints (each datapoint has numfeat values)
 generator = 'tensor';            % either 'tensor' or 'function'
+ratioTr = 0.7;                  % Fraction of the datapoints used for train
+ratioTe = 1-ratioTr;            % Fraction of the datapoints used for test
 
 optimizer = 'ls-cpd/nls_gndl';  % optimizer and optimizer options
 options.Display = 10;
 options.TolFun = eps^2;
 options.TolX = eps;
-options.MaxIter = 50;
+options.MaxIter = 100;
 options.TolAbs = eps;
 options.CGMaxIter = 60;
 
@@ -77,6 +79,11 @@ elseif strcmp(generator,'function')
     Y = Y';
 end
 
+X = X(1:floor(ratioTr*length(X)),:);
+Xte = X(floor(ratioTr*length(X))+1:end,:);
+Y = Y(1:floor(ratioTr*length(Y)));
+Yte = Y(floor(ratioTr*length(Y))+1:end);
+
 %% Initial value, A and b
 tic  % start time
 
@@ -95,11 +102,13 @@ time = toc;   % end time
 
 %% Test
 if strcmp(generator,'tensor')
+    % Train set
     % Plot of the error
     err = (sqrt(output.fval(2:end)*2))/norm(Y);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
     W0 = cpdgen(U0);
+    Un = repmat({X'},1,order);
     Y0 = mtkrprod(W0,Un,0)';
     
     Wres = cpdgen(Ures);
@@ -112,7 +121,14 @@ if strcmp(generator,'tensor')
     disp(['Relative error of Y0, 2-norm, computed with Utrue: ',num2str(Err0)])
     disp(['Relative error of Yest, 2-norm, computed with Ures: ',num2str(ErrY)])
     
+    % Test set
+    Un = repmat({Xte'},1,order);
+    YresTe = mtkrprod(Wres,Un,0)';
+    ErrYte = norm(Yte-YresTe)/norm(Yte);
+    disp(['Relative error of Yest test, 2-norm, computed with Ures: ',num2str(ErrYte)])
+
 elseif strcmp(generator,'function')
+    % Train set
     % Plot of the error
     err = (sqrt(output.fval(2:end)*2))/norm(Y);
     semilogy(err); xlabel('Iteration'); ylabel('error');
@@ -123,6 +139,13 @@ elseif strcmp(generator,'function')
     
     ErrY = norm(Y-Yres)/norm(Y);
     disp(['Relative error of Yest, 2-norm, computed with Ures: ',num2str(ErrY)])
+    
+    % Test set
+    Un = repmat({Xte'},1,order);
+    YresTe = mtkrprod(Wres,Un,0)';
+
+    ErrYte = norm(Yte-YresTe)/norm(Yte);
+    disp(['Relative error of Yest test, 2-norm, computed with Ures: ',num2str(ErrYte)])
 end
 
 %% Log file
