@@ -8,8 +8,8 @@ numfeat = 10;                    % Number of features. "numfeat" is the dimensio
 N = 4;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
 R = 2;                          % Rank of the CPD representation
 Mmin = (numfeat*N-N+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
-M = 200;                  % Number of datapoints (each datapoint has numfeat values)
-generator = 'function';            % either 'tensor' or 'function'
+M = 15;                  % Number of datapoints (each datapoint has numfeat values)
+generator = 'tensor';            % either 'tensor' or 'function'
 ratioTr = 0.7;                  % Fraction of the datapoints used for train
 ratioTe = 1-ratioTr;            % Fraction of the datapoints used for test
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
