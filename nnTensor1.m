@@ -14,7 +14,7 @@ factor0 = 2;                    % factor for the initial value
 facX = 3;                       % factor for the inputs
 Mmin = (numfeat*order-order+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
 numpoints = 15;                  % Number of datapoints (each datapoint has numfeat values)
-generator = 'tensor';            % either 'tensor' or 'function'
+generator = 'function';            % either 'tensor' or 'function'
 ratioTr = 0.7;                  % Fraction of the datapoints used for train
 ratioTe = 1-ratioTr;            % Fraction of the datapoints used for test
 
@@ -107,25 +107,20 @@ if strcmp(generator,'tensor')
     err = (sqrt(output.fval(2:end)*2))/norm(Y);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
-    W0 = cpdgen(U0);
-    Un = repmat({X'},1,order);
-    Y0 = mtkrprod(W0,Un,0)';
-    
     Wres = cpdgen(Ures);
+    Un = repmat({X'},1,order);
     Yres = mtkrprod(Wres,Un,0)';
     
     ErrT = frob(W-Wres)/frob(W);        % Error in tensor
-    Err0 = norm(Y-Y0)/norm(Y);
     ErrY = norm(Y-Yres)/norm(Y);
     disp(['Relative error of tensor, frobenius norm: ',num2str(ErrT)])
-    disp(['Relative error of Y0, 2-norm, computed with Utrue: ',num2str(Err0)])
-    disp(['Relative error of Yest, 2-norm, computed with Ures: ',num2str(ErrY)])
+    disp(['Relative error of Yest train, 2-norm: ',num2str(ErrY)])
     
     % Test set
     Un = repmat({Xte'},1,order);
     YresTe = mtkrprod(Wres,Un,0)';
     ErrYte = norm(Yte-YresTe)/norm(Yte);
-    disp(['Relative error of Yest test, 2-norm, computed with Ures: ',num2str(ErrYte)])
+    disp(['Relative error of Yest test, 2-norm: ',num2str(ErrYte)])
 
 elseif strcmp(generator,'function')
     % Train set
@@ -138,14 +133,14 @@ elseif strcmp(generator,'function')
     Yres = mtkrprod(Wres,Un,0)';
     
     ErrY = norm(Y-Yres)/norm(Y);
-    disp(['Relative error of Yest, 2-norm, computed with Ures: ',num2str(ErrY)])
+    disp(['Relative error of Yest train, 2-norm: ',num2str(ErrY)])
     
     % Test set
     Un = repmat({Xte'},1,order);
     YresTe = mtkrprod(Wres,Un,0)';
 
     ErrYte = norm(Yte-YresTe)/norm(Yte);
-    disp(['Relative error of Yest test, 2-norm, computed with Ures: ',num2str(ErrYte)])
+    disp(['Relative error of Yest test, 2-norm: ',num2str(ErrYte)])
 end
 
 %% Log file
