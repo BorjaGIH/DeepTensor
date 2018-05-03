@@ -99,29 +99,25 @@ time = toc;
 
 %% Tests
 if strcmp(generator,'tensor')
+    % Train set
     % Plot of the error
     err = (sqrt(output.fval*2))/norm(Y);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
-    W0 = cpdgen(U0);
-    Un = repmat({Xte'},1,order);
-    Y0 = mtkrprod(W0,Un,0)';
-    
     Wres = cpdgen(Ures);
+    Un = repmat({X'},1,order);
     Yres = mtkrprod(Wres,Un,0)';
     
     ErrT = frob(W-Wres)/frob(W);        % Error in tensor
-    Err0 = norm(Y-Y0)/norm(Y);
-    ErrY = norm(Y-Yres)/norm(Y);
+    ErrY = norm(Y-Yres)/norm(Y);        % Error in output
     disp(['Relative error of tensor, frobenius norm: ',num2str(ErrT)])
-    disp(['Relative error of Y0, 2-norm, computed with Utrue: ',num2str(Err0)])
-    disp(['Relative error of Yest, 2-norm, computed with Ures: ',num2str(ErrY)])
+    disp(['Relative error of Yest train, 2-norm: ',num2str(ErrY)])
     
     % Test set
     Un = repmat({Xte'},1,order);
     YresTe = mtkrprod(Wres,Un,0)';
-    ErrYte = norm(Yte-YresTe)/norm(Yte);
-    disp(['Relative error of Yest test, 2-norm, computed with Ures: ',num2str(ErrYte)])
+    ErrYte = norm(Yte-YresTe)/norm(Yte);    % error in output
+    disp(['Relative error of Yest test, 2-norm: ',num2str(ErrYte)])
     
 elseif strcmp(generator,'function')
     % Plot of the error
@@ -132,14 +128,14 @@ elseif strcmp(generator,'function')
     Un = repmat({X'},1,order);
     Yres = mtkrprod(Wres,Un,0)';
     
-    ErrY = norm(Y-Yres)/norm(Y);
-    disp(['Relative error of Yest test, 2-norm, computed with Ures: ',num2str(ErrY)])
+    ErrY = norm(Y-Yres)/norm(Y);   
+    disp(['Relative error of Yest train, 2-norm: ',num2str(ErrY)])
     
     % Test set
     Un = repmat({Xte'},1,order);
     YresTe = mtkrprod(Wres,Un,0)';
     ErrYte = norm(Yte-YresTe)/norm(Yte);
-    disp(['Relative error of Yest, 2-norm, computed with Ures: ',num2str(ErrYte)])
+    disp(['Relative error of Yest test, 2-norm: ',num2str(ErrYte)])
 
 end
 
