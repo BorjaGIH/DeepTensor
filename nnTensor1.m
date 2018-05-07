@@ -1,4 +1,4 @@
-clearvars; close all; clc;
+% clearvars; close all; clc;
 % rng(1);
 % https://github.com/BorjaGIH/DeepTensor
 % LS_CPD branch
@@ -9,7 +9,7 @@ N = 4;                      % Order of the tensor. "order" is also degree of the
 R = 2;                          % Rank of the CPD representation
 Mmin = (numfeat*N-N+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
 M = 15;                  % Number of datapoints (each datapoint has numfeat values)
-generator = 'tensor';            % either 'tensor' or 'function'
+generator = 'function';            % either 'tensor' or 'function'
 ratioTr = 0.7;                  % Fraction of the datapoints used for train
 ratioTe = 1-ratioTr;            % Fraction of the datapoints used for test
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
@@ -79,9 +79,9 @@ elseif strcmp(generator,'function')
     Y = Y';
 end
 
-X = X(1:floor(ratioTr*length(X)),:);
+Xtr = X(1:floor(ratioTr*length(X)),:);
 Xte = X(floor(ratioTr*length(X))+1:end,:);
-Y = Y(1:floor(ratioTr*length(Y)));
+Ytr = Y(1:floor(ratioTr*length(Y)));
 Yte = Y(floor(ratioTr*length(Y))+1:end);
 
 %% Initial value, A and b
@@ -91,55 +91,55 @@ tic  % start time
 U0 = cpd_rnd(size_tens(:),R);            % random
 
 % Compute A and b
-A = kr(repmat({X'},1,N))';
-b = Y;
-disp(['Size of A:',num2str(size(A))])
-disp(['rank of A:',num2str(rank(A))])
+Atr = kr(repmat({Xtr'},1,N))';
+btr = Ytr;
+disp(['Size of A:',num2str(size(Atr))])
+disp(['rank of A:',num2str(rank(Atr))])
 
 %% Optimization LS-CPD
-[Ures,output] = lscpd_nls(A,b,U0,options);
+[Uest,output] = lscpd_nls(Atr,btr,U0,options);
 time = toc;   % end time
 
 %% Test
 if strcmp(generator,'tensor')
     % Train set
     % Plot of the error
-    err = (sqrt(output.fval(2:end)*2))/norm(Y);
+    err = (sqrt(output.fval(2:end)*2))/norm(Ytr);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
-    Wres = cpdgen(Ures);
-    Un = repmat({X'},1,N);
-    Yres = mtkrprod(Wres,Un,0)';
+    West = cpdgen(Uest);
+    Un = repmat({Xtr'},1,N);
+    Yest = mtkrprod(West,Un,0)';
     
-    ErrT = frob(W-Wres)/frob(W);        % Error in tensor
-    ErrY = norm(Y-Yres)/norm(Y);
+    ErrT = frob(W-West)/frob(W);        % Error in tensor
+    ErrY = norm(Ytr-Yest)/norm(Ytr);
     disp(['Relative error of tensor, frobenius norm: ',num2str(ErrT)])
     disp(['Relative error of Yest train, 2-norm: ',num2str(ErrY)])
     
     % Test set
     Un = repmat({Xte'},1,N);
-    YresTe = mtkrprod(Wres,Un,0)';
-    ErrYte = norm(Yte-YresTe)/norm(Yte);
+    YestTe = mtkrprod(West,Un,0)';
+    ErrYte = norm(Yte-YestTe)/norm(Yte);
     disp(['Relative error of Yest test, 2-norm: ',num2str(ErrYte)])
 
 elseif strcmp(generator,'function')
     % Train set
     % Plot of the error
-    err = (sqrt(output.fval(2:end)*2))/norm(Y);
+    err = (sqrt(output.fval(2:end)*2))/norm(Ytr);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
-    Un = repmat({X'},1,N);
-    Wres = cpdgen(Ures);
-    Yres = mtkrprod(Wres,Un,0)';
+    Un = repmat({Xtr'},1,N);
+    West = cpdgen(Uest);
+    Yest = mtkrprod(West,Un,0)';
     
-    ErrY = norm(Y-Yres)/norm(Y);
+    ErrY = norm(Ytr-Yest)/norm(Ytr);
     disp(['Relative error of Yest train, 2-norm: ',num2str(ErrY)])
     
     % Test set
     Un = repmat({Xte'},1,N);
-    YresTe = mtkrprod(Wres,Un,0)';
+    YestTe = mtkrprod(West,Un,0)';
 
-    ErrYte = norm(Yte-YresTe)/norm(Yte);
+    ErrYte = norm(Yte-YestTe)/norm(Yte);
     disp(['Relative error of Yest test, 2-norm: ',num2str(ErrYte)])
 end
 
