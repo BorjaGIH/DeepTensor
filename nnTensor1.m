@@ -1,14 +1,14 @@
 clearvars; close all; clc;
 % rng(1);
 % https://github.com/BorjaGIH/DeepTensor
-% PD_constraint_dataTensor branch
+% % PD_constraint_dataTensor branch
 
 %% Parameters
-numfeat = 10;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
-N = 4;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
-R = 2;                          % Rank of the CPD representation
+numfeat = 3;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+N = 3;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
+R = 3;                          % Rank of the CPD representation
 Mmin = (numfeat*N-N+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
-M = 15;                         % Number of datapoints (each datapoint has numfeat values)
+M = 10;                         % Number of datapoints (each datapoint has numfeat values)
 generator = 'function';           % either 'tensor' or 'function'
 ratioTr = 0.7;                  % fraction of datapoints to use for train
 ratioTe = 1 - ratioTr;          % fraction of datapoints to use for test
@@ -22,7 +22,7 @@ optimizer = 'minf_lfbgs';  % optimizer and optimizer options
 options.Display = true;
 options.TolFun = eps;
 options.TolX = eps;
-options.MaxIter = 500;
+options.MaxIter = 3000;
 options.TolAbs = eps;
 
 %% Generate data and tensors
@@ -78,9 +78,9 @@ elseif strcmp(generator,'function')
     Y = Y';
 end
 
-X = X(1:floor(ratioTr*length(X)),:);
+Xtr = X(1:floor(ratioTr*length(X)),:);
 Xte = X(floor(ratioTr*length(X))+1:end,:);
-Y = Y(1:floor(ratioTr*length(Y)));
+Ytr = Y(1:floor(ratioTr*length(Y)));
 Yte = Y(floor(ratioTr*length(Y))+1:end);
 
 %% Initial value
@@ -90,10 +90,10 @@ tic  % start time
 U0 = cpd_rnd(size_tens(:),R);            % random
 
 %% Optimization using kernel
-kernel = Kernel1(X,Y,numfeat,N,R); % create kernel
+kernel = Kernel1(Xtr,Ytr,numfeat,N,R); % create kernel
 kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
 
-[Ures,output] = minf_lbfgs(@kernel.objfun, @kernel.grad, U0, options); % Minimize
+[Uest,output] = minf_lbfgs(@kernel.objfun, @kernel.grad, U0, options); % Minimize
 
 time = toc;
 
@@ -101,40 +101,40 @@ time = toc;
 if strcmp(generator,'tensor')
     % Train set
     % Plot of the error
-    err = (sqrt(output.fval*2))/norm(Y);
+    err = (sqrt(output.fval*2))/norm(Ytr);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
-    Wres = cpdgen(Ures);
-    Un = repmat({X'},1,N);
-    Yres = mtkrprod(Wres,Un,0)';
+    West = cpdgen(Uest);
+    Un = repmat({Xtr'},1,N);
+    Yest = mtkrprod(West,Un,0)';
     
-    ErrT = frob(W-Wres)/frob(W);        % Error in tensor
-    ErrY = norm(Y-Yres)/norm(Y);        % Error in output
+    ErrT = frob(W-West)/frob(W);        % Error in tensor
+    ErrY = norm(Ytr-Yest)/norm(Ytr);        % Error in output
     disp(['Relative error of tensor, frobenius norm: ',num2str(ErrT)])
     disp(['Relative error of Yest train, 2-norm: ',num2str(ErrY)])
     
     % Test set
     Un = repmat({Xte'},1,N);
-    YresTe = mtkrprod(Wres,Un,0)';
-    ErrYte = norm(Yte-YresTe)/norm(Yte);    % error in output
+    YestTe = mtkrprod(West,Un,0)';
+    ErrYte = norm(Yte-YestTe)/norm(Yte);    % error in output
     disp(['Relative error of Yest test, 2-norm: ',num2str(ErrYte)])
     
 elseif strcmp(generator,'function')
     % Plot of the error
-    err = (sqrt(output.fval*2))/norm(Y);
+    err = (sqrt(output.fval*2))/norm(Ytr);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
-    Wres = cpdgen(Ures);
-    Un = repmat({X'},1,N);
-    Yres = mtkrprod(Wres,Un,0)';
+    West = cpdgen(Uest);
+    Un = repmat({Xtr'},1,N);
+    Yest = mtkrprod(West,Un,0)';
     
-    ErrY = norm(Y-Yres)/norm(Y);   
+    ErrY = norm(Ytr-Yest)/norm(Ytr);   
     disp(['Relative error of Yest train, 2-norm: ',num2str(ErrY)])
     
     % Test set
     Un = repmat({Xte'},1,N);
-    YresTe = mtkrprod(Wres,Un,0)';
-    ErrYte = norm(Yte-YresTe)/norm(Yte);
+    YestTe = mtkrprod(West,Un,0)';
+    ErrYte = norm(Yte-YestTe)/norm(Yte);
     disp(['Relative error of Yest test, 2-norm: ',num2str(ErrYte)])
 
 end
