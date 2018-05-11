@@ -1,7 +1,7 @@
 % clearvars; close all; clc;
 % rng(1);
 % https://github.com/BorjaGIH/DeepTensor
-% LS_CPD branch
+% Efficient_alg branch
 
 %% Parameters
 numfeat = 10;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
