@@ -1,5 +1,5 @@
 % clearvars; close all; clc;
-% rng(1);
+rng(100);
 % https://github.com/BorjaGIH/DeepTensor
 % Efficient_alg branch
 
@@ -8,7 +8,7 @@ numfeat = 10;                    % Number of features. "numfeat" is the dimensio
 N = 4;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
 R = 2;                          % Rank of the CPD representation
 Mmin = (numfeat*N-N+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
-M = 15;                  % Number of datapoints (each datapoint has numfeat values)
+M = 200;                  % Number of datapoints (each datapoint has numfeat values)
 generator = 'tensor';            % either 'tensor' or 'function'
 ratioTr = 0.7;                  % Fraction of the datapoints used for train
 ratioTe = 1-ratioTr;            % Fraction of the datapoints used for test
@@ -22,7 +22,7 @@ optimizer = 'ls-cpd/nls_gndl';  % optimizer and optimizer options
 options.Display = 10;
 options.TolFun = eps^2;
 options.TolX = eps;
-options.MaxIter = 100;
+options.MaxIter = 400;
 options.TolAbs = eps;
 options.CGMaxIter = 60;
 
@@ -96,8 +96,11 @@ btr = Ytr;
 disp(['Size of A:',num2str(size(Atr))])
 disp(['rank of A:',num2str(rank(Atr))])
 
-%% Optimization LS-CPD
+% Optimization LS-CPD
+% [Uest,output] = TVPcpd_nls(Xtr,btr,U0,options);
+% Optimization TVP ls-cpd
 [Uest,output] = lscpd_nls(Atr,btr,U0,options);
+
 time = toc;   % end time
 
 %% Test

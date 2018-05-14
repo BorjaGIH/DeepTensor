@@ -1,4 +1,4 @@
-function [U,output] = lscpd_nls(A, b, U0, varargin)
+function [U,output] = TVPcpd_nls(X, b, U0, varargin)
 %LSCPD_NLS LS-CPD by nonlinear least squares
 %   [U,output] = lscpd_nls(A, b, U0, varargin) computes the solution of a
 %   linear system with a (vectorized) CPD structure on the solution. U0
@@ -26,27 +26,32 @@ function [U,output] = lscpd_nls(A, b, U0, varargin)
 %            Nico Vervliet          (Nico.Vervliet@esat.kuleuven.be)
 %            Lieven De Lathauwer    (Lieven.DeLathauwer@kuleuven-kulak.be)
 
+%   Modification by Borja Velasco 12/5/18
+
+
     % check initial factor matrices U0
     U = U0(:).';
     N = length(U);
     R = size(U{1},2); 
+    dim = size(U{1},1);
+    
     if any(cellfun('size',U,2) ~= R)
         error('lscpd_nls:U0','size(U0{n},2) should be the same for all n.');
     end
     
     % convert A to a tensor
-    if ndims(A) ~= N + 1
-        if prod(cellfun(@length, U)) ~= size(A, 2), 
-            error('lscpd_nls:dimensionMismatch', 'Dimensions don''t agree');
-        end
-        A = reshape(A, [size(A,1); cellfun(@length, U(:))]');
-    end
-    nbrows = size(A,1);
+%     if ndims(A) ~= N + 1
+%         if prod(cellfun(@length, U)) ~= size(A, 2), 
+%             error('lscpd_nls:dimensionMismatch', 'Dimensions don''t agree');
+%         end
+%         A = reshape(A, [size(A,1); cellfun(@length, U(:))]');
+%     end
+%     nbrows = size(A,1);
 
     % permute the first mode to the middle to minimize middle contractions
-    m1 = ceil(0.5*(N+1));
-    A = permute(A, [2:m1 1 m1+1:N+1]);
-    modes = [1:m1-1 m1+1:N+1];
+%     m1 = ceil(0.5*(N+1));
+%     A = permute(A, [2:m1 1 m1+1:N+1]);
+%     modes = [1:m1-1 m1+1:N+1];
     
     % create helper functions and variables
     isfunc = @(f)isa(f,'function_handle');
@@ -60,14 +65,15 @@ function [U,output] = lscpd_nls(A, b, U0, varargin)
     p.addParameter('CGMaxIter', 10);
     p.addParameter('Display', 0);
     p.addParameter('M', 'block-Jacobi');
+%     p.addParameter('M', 'M'); % Modified until fast multiplication is implemented
     p.parse(varargin{:});
     options = [fieldnames(p.Results)'  fieldnames(p.Unmatched)';
                struct2cell(p.Results)' struct2cell(p.Unmatched)'];
     options = struct(options{:});
         
     % cache variables
-    cache.offset = cellfun(@(u) size(u,1),U(:));
-    cache.offset = cumsum([1; kron(cache.offset,ones(R,1))]);
+    cache.offset = cellfun(@(u) numel(u),U(:));
+    cache.offset = cumsum([1; kron(cache.offset,1)]);
     
     % call the optimization method.
     dF.JHJx = @JHJx;
@@ -80,64 +86,66 @@ function [U,output] = lscpd_nls(A, b, U0, varargin)
     output.Name = func2str(options.Algorithm);
 
     function fval = objfun(z)
-    % LS-CPD objective function
-        fval = -b;
-        for r = 1:R
-            tmp = cellfun(@(u) u(:,r), z, 'UniformOutput', false);
-            fval = fval + contract(A, tmp, modes);
+        % Tensor-vector product LS-CPD objective function
+        tmp = cellfun(@(u) X*u, z, 'UniformOutput', false);
+        mult = tmp{1};
+        for k = 2:length(tmp)
+            mult = mult.*tmp{k};
         end
-        cache.residual = fval;
+        cache.residual = mult*ones(R,1)-b;
+        fval = cache.residual;
         fval = 0.5*(fval(:)'*fval(:));
     end
 
     function grad = grad(z)
-    % LS-CPD scaled conjugate cogradient.
+        % Tensor-vector product LS-CPD gradient
         E = cache.residual;
-        offset = cache.offset;
-        grad = nan(offset(end)-1,1);
+        grad = [];
         
         for n = 1:N
-            for r = 1:R
-                tmp = cellfun(@(u) u(:,r), z, 'UniformOutput', false);
-                cache.J{r}{n} = contract(A, tmp([1:n-1 n+1:N]), modes([1:n-1 n+1:N]));                
-                if n > N/2
-                    cache.J{r}{n} = cache.J{r}{n}.';
-                end                   
-                grad(offset(r+(n-1)*R):offset(r+1+(n-1)*R)-1) = conj(cache.J{r}{n})*E;
-                cache.JHJinv{r}{n} = pinv(conj(cache.J{r}{n})*cache.J{r}{n}.');
+            for ii = 1:R*dim
+                zaux = z;
+                zaux{n} = zeros(size(zaux{n}));
+                zaux{n}(ii) = 1;
+                tmp = cellfun(@(u) X*u, zaux, 'UniformOutput', false);
+                mult = tmp{1};
+                for k = 2:N
+                    mult = mult.*tmp{k};
+                end
+                cache.J{n}{ii} = mult*ones(R,1);
+                grad = [grad, cache.J{n}{ii}'*E];
+%                 cache.JHJinv{n}{ii} = pinv(cache.J{n}{ii}'*cache.J{n}{ii});
             end
-        end  
-        grad2 = grad;
+        end
+        grad = grad';
+%         grad2 = grad;
         J = cell2mat(cellfun(@(u) cell2mat(u),cache.J,'UniformOutput', false));
+        cache.JHJinv = pinv(J*J.');
     end
 
     function y = JHJx(~,y)
-    % LS-CPD fast Gramian vector product
-        offset = cache.offset;
+        % Tensor-vector product LS-CPD Gramian vector product. Implement fast via blocks
+%         offset = cache.offset;
         J  = cache.J;
-        Jx = zeros(nbrows, 1);
-        for n = 1:N
-            for r = 1:R
-                Jx = Jx + (y(offset(r+(n-1)*R):offset(r+1+(n-1)*R)-1).'*J{r}{n}).';
-            end
-        end
-        for n = 1:N
-            for r = 1:R
-                y(offset(r+(n-1)*R):offset(r+1+(n-1)*R)-1) = conj(J{r}{n})*Jx;
-            end
-        end
+        
+        JHJ = cell2mat(cellfun(@(u) cell2mat(u),J,'UniformOutput', false)).'*...
+            cell2mat(cellfun(@(u) cell2mat(u),J,'UniformOutput', false));
+        y = JHJ*y; 
     end
 
     function y = M_blockJacobi(~,q)
     % Solve M*y = q, where M is a block-diagonal approximation for JHJ.
-        y = nan(size(q));
-        offset = cache.offset;
-        for n = 1:N
-            for r = 1:R
-                idx = offset(r+(n-1)*R):offset(r+1+(n-1)*R)-1;
-                y(idx) = cache.JHJinv{r}{n}*q(idx);
-            end
-        end
+%         y = nan(size(q));
+%         y = [];
+%         offset = cache.offset;
+%         for n = 1:N
+%             for ii = 1:R*dim
+%                 idx = offset(n):offset(n+1)-1;
+% %                 y(idx) = cache.JHJinv{n}{ii}*q(idx);
+%                 y = [y, cache.JHJinv{n}{ii}*q(idx)];
+%             end
+%         end
+        y = cache.JHJinv*q;
     end
    
 end
