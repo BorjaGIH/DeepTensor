@@ -1,5 +1,5 @@
 clearvars; close all; clc;
-% rng(14);
+% rng(1);
 % https://github.com/BorjaGIH/DeepTensor
 % % PD_constraint_dataTensor branch
 
@@ -7,7 +7,6 @@ clearvars; close all; clc;
 numfeat = 2;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
 N = 2;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
 R = 2;                          % Rank of the CPD representation
-Mmin = (numfeat*N-N+1)*R+1; % Lemma 1, datapoints (M) must be bigger than or equal to: M>=(I1+I2...+In-N+1)R+1
 M = 3;                         % Number of datapoints (each datapoint has numfeat values)
 generator = 'tensor';           % either 'tensor' or 'function'
 ratioTr = 0.7;                  % fraction of datapoints to use for train
@@ -84,12 +83,12 @@ Ytr = Y(1:floor(ratioTr*length(Y)));
 Yte = Y(floor(ratioTr*length(Y))+1:end);
 
 %% Initial value
-tic  % start time
-
 % Initial value
 U0 = cpd_rnd(size_tens(:),R);            % random
 
 %% Optimization using kernel
+tic  % start time
+
 kernel = Kernel1(Xtr,Ytr,numfeat,N,R); % create kernel
 kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
 
