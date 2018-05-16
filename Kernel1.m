@@ -22,7 +22,7 @@ end
 function fval = objfun(this,z) % objective function
     X = this.x;
     Y = this.y;
-    npoints = length(X);
+    npoints = size(X,1);
     Yest = zeros(npoints,1);
     
     % Construct small matrix stacking rows
@@ -98,16 +98,16 @@ function grad = grad(this,z) % column vector with the gradient
             end
             der(jj) = prod(tmp2);
         end  
-        gradTmp = gradTmp + (Yest(ii)-Y(ii)).*der'; % Can be written as multilinear op. (kron)
+        gradTmp = gradTmp + (Yest(ii)-Y(ii)).*der; % Can be written as multilinear op. (kron)
     end
     grad = gradTmp;
     
     %% numerical
-%     grad1 = TensorOptimizationKernel.serialize(deriv(@this.objfun, z, this.objfun(z), 'gradient'));
-%     
-%     %% check
-%     plot(grad1); hold on; plot(grad);
-%     norm(grad1-grad)/norm(grad1)
+    grad1 = TensorOptimizationKernel.serialize(deriv(@this.objfun, z, this.objfun(z), 'gradient'));
+    
+    %% check
+    plot(grad1); hold on; plot(grad);
+    norm(grad1-grad)/norm(grad1)
     
 end
 
