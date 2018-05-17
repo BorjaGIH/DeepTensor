@@ -53,7 +53,7 @@ function grad = grad(this,z) % column vector with the gradient
 %% analytic
     X = this.x;
     Y = this.y;
-    npoints = length(X);
+    npoints = size(X,1);
     Yest = zeros(npoints,1);
     
     % Construct small matrix stacking rows
@@ -73,7 +73,7 @@ function grad = grad(this,z) % column vector with the gradient
     gradTmp = zeros(this.N*this.R*this.numfeat,1);
     
     indx = repmat(1:this.numfeat,1,this.R*this.N);
-    tmp = sort(repmat(1:this.numfeat,1,this.R));
+    tmp = sort(repmat(1:this.R,1,this.N));
     rvec = repmat(tmp,1,this.N);
     nvec = sort(indx);
         
@@ -91,10 +91,11 @@ function grad = grad(this,z) % column vector with the gradient
             
             % Direct calculation
             tmp2 = zeros(1,this.N);
+            ztmp = z;
             for l=1:this.N
-                z{n}(:,r) = 0;
-                z{n}(k,r) = 1;
-                tmp2(l) = dot(z{l}(:,r),X(ii,:));
+                ztmp{n}(:,r) = 0;
+                ztmp{n}(k,r) = 1;
+                tmp2(l) = dot(ztmp{l}(:,r),X(ii,:));
             end
             der(jj) = prod(tmp2);
         end  
@@ -103,11 +104,11 @@ function grad = grad(this,z) % column vector with the gradient
     grad = gradTmp;
     
     %% numerical
-    grad1 = TensorOptimizationKernel.serialize(deriv(@this.objfun, z, this.objfun(z), 'gradient'));
-    
-    %% check
-    plot(grad1); hold on; plot(grad);
-    norm(grad1-grad)/norm(grad1)
+%     grad1 = TensorOptimizationKernel.serialize(deriv(@this.objfun, z, this.objfun(z), 'gradient'));
+%     
+%     %% check
+%     plot(grad1); hold on; plot(grad);
+%     norm(grad1-grad)/norm(grad1)
     
 end
 
