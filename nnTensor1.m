@@ -1,11 +1,11 @@
-clearvars; close all; clc;
-% rng(1);
+clearvars; clc;
+rng(1);
 % https://github.com/BorjaGIH/DeepTensor
 % % PD_constraint_dataTensor branch
 
 %% Parameters
-numfeat = 3;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
-N = 3;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
+numfeat = 4;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+N = 4;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
 R = 2;                          % Rank of the CPD representation
 M = 200;                         % Number of datapoints (each datapoint has numfeat values)
 generator = 'tensor';           % either 'tensor' or 'function'
@@ -77,10 +77,10 @@ elseif strcmp(generator,'function')
     Y = Y';
 end
 
-Xtr = X(1:floor(ratioTr*length(X)),:);
-Xte = X(floor(ratioTr*length(X))+1:end,:);
-Ytr = Y(1:floor(ratioTr*length(Y)));
-Yte = Y(floor(ratioTr*length(Y))+1:end);
+Xtr = X(1:floor(ratioTr*size(X,1)),:);
+Xte = X(floor(ratioTr*size(X,1))+1:end,:);
+Ytr = Y(1:floor(ratioTr*size(Y,1)));
+Yte = Y(floor(ratioTr*size(Y,1))+1:end);
 
 %% Initial value
 % Initial value

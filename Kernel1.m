@@ -105,10 +105,7 @@ function grad = grad(this,z) % column vector with the gradient
     
     %% numerical
 %     grad1 = TensorOptimizationKernel.serialize(deriv(@this.objfun, z, this.objfun(z), 'gradient'));
-%     
-%     %% check
-%     plot(grad1); hold on; plot(grad);
-%     norm(grad1-grad)/norm(grad1)
+    % include assertion in case gradient fails
     
 end
 
