@@ -89,10 +89,13 @@ U0 = cpd_rnd(size_tens(:),R);            % random
 %% Optimization using kernel
 tic  % start time
 
-kernel = Kernel1(Xtr,Ytr,numfeat,N,R); % create kernel
-kernel.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
+% kernel1 = Kernelbfgs(Xtr,Ytr,numfeat,N,R); % create kernel
+% kernel1.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
+% [Uest,output] = minf_lbfgs(@kernel1.objfun, @kernel1.grad, U0, options); % Minimize
 
-[Uest,output] = minf_lbfgs(@kernel.objfun, @kernel.grad, U0, options); % Minimize
+kernel2 = Kernelgn(Xtr,Ytr,numfeat,N,R); % create kernel
+kernel2.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
+[Uest,output] = nls_gndl(@kernel2.objfun, 'Jacobian', U0);
 
 time = toc;
 

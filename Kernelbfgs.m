@@ -1,4 +1,4 @@
-classdef Kernel1 < TensorOptimizationKernel
+classdef Kernelbfgs < TensorOptimizationKernel
 
 properties
     x       % input data
@@ -11,7 +11,7 @@ end
 
 methods
 
-function this = Kernel1(x, y, numfeat, N, R) % constructor
+function this = Kernelbfgs(x, y, numfeat, N, R) % constructor
     this.x = x;
     this.y = y;
     this.numfeat = numfeat;
@@ -106,6 +106,26 @@ function grad = grad(this,z) % column vector with the gradient
     %% numerical
 %     grad1 = TensorOptimizationKernel.serialize(deriv(@this.objfun, z, this.objfun(z), 'gradient'));
     % include assertion in case gradient fails
+    
+end
+
+function jhj = JHDJ(this, z)
+    %JHDJ Compute an approximation of the Hessian.
+    %   JHJ = JHDJ(Z) computes a positive semidefinite approximation of the Hessian
+    %   of the objective function using variables Z. This approximation is
+    %   usually the Gramian matrix, or its generalization to other
+    %   divergences.
+    
+    
+end
+
+function y = JHDJx(this, z, x)
+    %JHDJX Compute the approximate Hessian vector product.
+    %   Y = JHDJX(Z,X) computes the product of the positive semidefinite
+    %   approximation of the Hessian of the objective function constructed
+    %   using variables Z, with a vector X. The approximation is usually the
+    %   Gramian matrix, or its generalization to other divergences.
+    
     
 end
 
