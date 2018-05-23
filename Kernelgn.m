@@ -7,16 +7,20 @@ properties
     numfeat % number of features 
     N       % order of the tensor
     R       % rank of the tensor for decomposition (constraint/efficient representation)
+    resid   % residual, r(z), that is used in J, JHJ, etc.
+    gradient    % gradient, used in JHJx etc.
 end
 
 methods
 
-function this = Kernelgn(x, y, numfeat, N, R) % constructor
+function this = Kernelgn(x, y, numfeat, N, R, resid, gradient) % constructor
     this.x = x;
     this.y = y;
     this.numfeat = numfeat;
     this.N = N;
     this.R = R;
+    this.resid = resid;
+    this.gradient = gradient;
 end
 
 function fval = objfun(this,z) % objective function
@@ -46,8 +50,8 @@ function fval = objfun(this,z) % objective function
         Yest(ii) = sum(prod(res,1));
     end
     
-    resid = Y-Yest;
-    fval = 0.5*(resid'*resid);
+    this.resid = Yest-Y;
+    fval = 0.5*(this.resid'*this.resid);
 end 
 
 function grad = grad(this,z) % column vector with the gradient
@@ -55,22 +59,6 @@ function grad = grad(this,z) % column vector with the gradient
     X = this.x;
     Y = this.y;
     npoints = size(X,1);
-    Yest = zeros(npoints,1);
-    
-    % Construct small matrix stacking rows
-    for jj=1:this.R
-        b1 = [z{1}(:,jj)';zeros(this.N-1,this.numfeat)]; % block
-        for ii=2:this.N
-            b1 = [b1, [zeros(ii-1,this.numfeat);z{ii}(:,jj)';zeros(this.N-ii,this.numfeat)]]; % jj is the rank
-        end
-        if jj==1
-            m1 = b1; % matrix (M1)
-        else
-            m1 = [m1;b1];
-        end
-    end
-    
-    Xii = repmat(X,1,this.N);
     gradTmp = zeros(this.N*this.R*this.numfeat,1);
     
     indx = repmat(1:this.numfeat,1,this.R*this.N);
@@ -79,10 +67,6 @@ function grad = grad(this,z) % column vector with the gradient
     nvec = sort(indx);
         
     for ii=1:npoints % loop through all datapoints
-        xii = Xii(ii,:)';
-        tmp = m1*xii;
-        res = reshape(tmp,this.N,this.R);
-        Yest(ii) = sum(prod(res,1));
         
         der = zeros(length(indx),1);
         for jj=1:length(indx)
@@ -100,8 +84,9 @@ function grad = grad(this,z) % column vector with the gradient
             end
             der(jj) = prod(tmp2);
         end  
-        gradTmp = gradTmp + (Yest(ii)-Y(ii)).*der; % Can be written as multilinear op. (kron)
+        gradTmp = gradTmp + (this.resid(ii)).*der; % Can be written as multilinear op. (kron)
     end
+    this.gradient = gradTmp;
     grad = gradTmp;
     
     %% numerical
@@ -110,25 +95,36 @@ function grad = grad(this,z) % column vector with the gradient
     
 end
 
-function jhj = JHDJ(this, z)
-    %JHDJ Compute an approximation of the Hessian.
-    %   JHJ = JHDJ(Z) computes a positive semidefinite approximation of the Hessian
-    %   of the objective function using variables Z. This approximation is
-    %   usually the Gramian matrix, or its generalization to other
-    %   divergences.
-    
-    
+function y = JHJx(this, x, ~) % CAREFUL! check nls_gndl line 371
+    gramian = this.gradient*this.gradient';
+    x = cell2mat(x);
+    y = gramian*x(:);
 end
 
-function y = JHDJx(this, z, x)
-    %JHDJX Compute the approximate Hessian vector product.
-    %   Y = JHDJX(Z,X) computes the product of the positive semidefinite
-    %   approximation of the Hessian of the objective function constructed
-    %   using variables Z, with a vector X. The approximation is usually the
-    %   Gramian matrix, or its generalization to other divergences.
-    
-    
-end
+% function jhj = JHDJ(this, z)
+%     %JHDJ Compute an approximation of the Hessian.
+%     %   JHJ = JHDJ(Z) computes a positive semidefinite approximation of the Hessian
+%     %   of the objective function using variables Z. This approximation is
+%     %   usually the Gramian matrix, or its generalization to other
+%     %   divergences.
+%     
+%     
+% end
+% 
+% function y = JHDJx(this, z, x)
+%     %JHDJX Compute the approximate Hessian vector product.
+%     %   Y = JHDJX(Z,X) computes the product of the positive semidefinite
+%     %   approximation of the Hessian of the objective function constructed
+%     %   using variables Z, with a vector X. The approximation is usually the
+%     %   Gramian matrix, or its generalization to other divergences.
+%     
+%     
+% end
+
+% function dF = setdF(this)
+%     dF.JHJx = @this.JHJx;
+%     dF.JHF = @this.grad;
+% end
 
 function isvalid = validate(this, z)
     isvalid = true; % you can ignore this for now

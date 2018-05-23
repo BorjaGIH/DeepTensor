@@ -88,14 +88,20 @@ U0 = cpd_rnd(size_tens(:),R);            % random
 
 %% Optimization using kernel
 tic  % start time
-
+% Kernels
 % kernel1 = Kernelbfgs(Xtr,Ytr,numfeat,N,R); % create kernel
 % kernel1.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
 % [Uest,output] = minf_lbfgs(@kernel1.objfun, @kernel1.grad, U0, options); % Minimize
 
-kernel2 = Kernelgn(Xtr,Ytr,numfeat,N,R); % create kernel
+kernel2 = Kernelgn(Xtr,Ytr,numfeat,N,R,[],[]); % create kernel
 kernel2.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
-[Uest,output] = nls_gndl(@kernel2.objfun, 'Jacobian', U0);
+dF.JHJx = @kernel2.JHJx;
+dF.JHF = @kernel2.grad;
+[Uest,output] = nls_gndl(@kernel2.objfun, dF, U0);
+
+
+% Functions
+% [Uest,output] = nls_gndl(@objfun, 'Jacobian', U0);
 
 time = toc;
 
@@ -176,4 +182,72 @@ end
 %     
 % else % any other case
 %     disp('*** Error in writing file ***')
+% end
+
+%% Functions
+% function fval = objfun(z) % objective function
+%     X = Xtr;
+%     Y = Ytr;
+%     npoints = size(X,1);
+%     Yest = zeros(npoints,1);
+%     
+%     % Construct small matrix stacking rows
+%     for jj=1:R
+%         b1 = [z{1}(:,jj)';zeros(this.N-1,this.numfeat)]; % block
+%         for ii=2:this.N
+%             b1 = [b1, [zeros(ii-1,this.numfeat);z{ii}(:,jj)';zeros(this.N-ii,this.numfeat)]]; % jj is the rank
+%         end
+%         if jj==1
+%             m1 = b1; % matrix (M1)
+%         else
+%             m1 = [m1;b1];
+%         end
+%     end
+%     
+%     Xii = repmat(X,1,this.N);
+%     for ii=1:npoints % loop through all datapoints
+%         xii = Xii(ii,:)';
+%         tmp = m1*xii;
+%         res = reshape(tmp,this.N,this.R);
+%         Yest(ii) = sum(prod(res,1));
+%     end
+%     
+%     this.resid = Yest-Y;
+%     fval = 0.5*(this.resid'*this.resid);
+% end 
+
+% function grad = grad(this,z) % column vector with the gradient
+% %% analytic
+%     X = this.x;
+%     Y = this.y;
+%     npoints = size(X,1);
+%     gradTmp = zeros(this.N*this.R*this.numfeat,1);
+%     
+%     indx = repmat(1:this.numfeat,1,this.R*this.N);
+%     tmp = sort(repmat(1:this.R,1,this.N));
+%     rvec = repmat(tmp,1,this.N);
+%     nvec = sort(indx);
+%         
+%     for ii=1:npoints % loop through all datapoints
+%         
+%         der = zeros(length(indx),1);
+%         for jj=1:length(indx)
+%             k = indx(jj);
+%             n = nvec(jj);
+%             r = rvec(jj);
+%             
+%             % Direct calculation
+%             tmp2 = zeros(1,this.N);
+%             ztmp = z;
+%             for l=1:this.N
+%                 ztmp{n}(:,r) = 0;
+%                 ztmp{n}(k,r) = 1;
+%                 tmp2(l) = dot(ztmp{l}(:,r),X(ii,:));
+%             end
+%             der(jj) = prod(tmp2);
+%         end  
+%         gradTmp = gradTmp + (this.resid(ii)).*der; % Can be written as multilinear op. (kron)
+%     end
+%     grad = gradTmp;
+%     
 % end
