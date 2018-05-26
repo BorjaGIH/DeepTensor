@@ -1,5 +1,5 @@
 clearvars; clc;
-rng(89);
+% rng(90);
 % https://github.com/BorjaGIH/DeepTensor
 % % PD_constraint_dataTensor branch
 
@@ -8,7 +8,7 @@ numfeat = 4;                    % Number of features. "numfeat" is the dimension
 N = 4;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
 R = 2;                          % Rank of the CPD representation
 M = 200;                         % Number of datapoints (each datapoint has numfeat values)
-generator = 'tensor';           % either 'tensor' or 'function'
+generator = 'function';           % either 'tensor' or 'function'
 ratioTr = 0.7;                  % fraction of datapoints to use for train
 ratioTe = 1 - ratioTr;          % fraction of datapoints to use for test
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
@@ -96,7 +96,7 @@ kernel2 = Kernelgn(Xtr,Ytr,numfeat,N,R,[],[],[]); % create kernel
 kernel2.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
 dF.JHF = @kernel2.grad;
 dF.JHJx = @kernel2.JHJx;
-% dF.M = @kernel2.M_jacobi;
+dF.M = @kernel2.M_jacobi;
 [Uest,output] = nls_gndl(@kernel2.objfun, dF, U0, options);
 
 time = toc;

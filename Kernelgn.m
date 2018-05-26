@@ -62,7 +62,6 @@ function grad = grad(this,z) % column vector with the gradient
     npoints = size(X,1);
     gradTmp = zeros(this.N*this.R*this.numfeat,1);
     jacobtmp = zeros(this.N*this.R*this.numfeat,npoints);
-    tol = 5e-6;
     
     indx = repmat(1:this.numfeat,1,this.R*this.N);
     tmp = sort(repmat(1:this.R,1,this.N));
@@ -87,34 +86,26 @@ function grad = grad(this,z) % column vector with the gradient
             der(jj) = prod(tmp2);            
         end  
         jacobtmp(:,ii) = der;
-        gradTmp = gradTmp + (this.resid(ii)).*der; 
+%         gradTmp = gradTmp + (this.resid(ii)).*der; 
     end
     this.jacobian = jacobtmp;
-    grad = gradTmp;
     gradjac = jacobtmp*this.resid;
-    err = frob(grad-gradjac)/grad;
-    if ~(err <= tol)
-        disp('Error 1');
-        return
-    end
     grad = gradjac;
-    
         
     %% Assert
-    grad1 = deriv(@this.objfun, z, this.objfun(z), 'gradient');
-    grad1 = TensorOptimizationKernel.serialize(grad1);
-    % computed
-    grad2 = gradTmp;
-    
-    % Check if correct
-    relerr = frob(grad1-grad2)/frob(grad1);
-
-%     assert(relerr <= tol);
-    if ~(relerr <= tol)
-        disp('Error 2');
-        return
-    end
-    grad = grad2;
+%     grad1 = deriv(@this.objfun, z, this.objfun(z), 'gradient');
+%     grad1 = TensorOptimizationKernel.serialize(grad1);
+%     % computed
+%     grad2 = gradTmp;
+%     
+%     % Check if correct
+%     relerr = frob(grad1-grad2)/frob(grad1);
+% 
+% %     assert(relerr <= tol);
+%     if ~(relerr <= tol)
+%         disp('Error 2');
+%         return
+%     end
     
 end
 
@@ -127,15 +118,14 @@ function y = JHJx(this, z, x)
 %     J2 = this.jacobian;
     
     %% Assert
-% %     model = @(Z) objfun(this,Z);
-%     model = @(Z) residFun(this,z);
-% %     model = @(Z) cpdgen(Z);
+%     model1 = @(Z) objfun(this,Z);
+%     model2 = @(Z) residFun(this,z);
 %     fun = 1;
 %     elementwise = isnumeric(fun) || nargin(fun) == 2; 
 %     tol = 1e-4;
 %     
 %     % target
-%     J1 = deriv(model, z, [], 'Jacobian');
+%     J1 = deriv(model2, z, [], 'Jacobian');
 %     M  = reshape(model(z), [], 1);
 %     if isnumeric(fun)
 %         D1 = fun;
@@ -146,16 +136,16 @@ function y = JHJx(this, z, x)
 %     y1 = J1'*(D1*(J1*x));
 %     
 %     % computed
-%     y2 = y;
-%     
-%     % Check if correct
-%     relerr = frob(y1-y2)/frob(y1);
-%     if exist('assertElementsAlmostEqual.m', 'file')
-%         assertElementsAlmostEqual(relerr, 0, 'absolute', tol);
-%     else % fall back to Matlab's Unit Test Framework
-%         assert(relerr <= tol);
-%     end
-%     y = y2;
+% %     y2 = y;
+% %     
+% %     % Check if correct
+% %     relerr = frob(y1-y2)/frob(y1);
+% %     if exist('assertElementsAlmostEqual.m', 'file')
+% %         assertElementsAlmostEqual(relerr, 0, 'absolute', tol);
+% %     else % fall back to Matlab's Unit Test Framework
+% %         assert(relerr <= tol);
+% %     end
+%     y = y1;
 end
 
 function y = M_jacobi(this,z,q)
