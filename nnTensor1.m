@@ -21,7 +21,7 @@ optimizer = 'minf_lfbgs';  % optimizer and optimizer options
 options.Display = true;
 options.TolFun = eps^2;
 options.TolX = eps;
-options.MaxIter = 200;
+options.MaxIter = 1000;
 options.TolAbs = eps;
 options.CGmaxIter = 15;
 

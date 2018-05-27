@@ -115,7 +115,6 @@ function y = JHJx(this, z, x)
     
 %     Jx = this.gradient'*x;
 %     y = this.gradient*Jx;
-%     J2 = this.jacobian;
     
     %% Assert
 %     model1 = @(Z) objfun(this,Z);
@@ -125,7 +124,7 @@ function y = JHJx(this, z, x)
 %     tol = 1e-4;
 %     
 %     % target
-%     J1 = deriv(model2, z, [], 'Jacobian');
+%     J1 = deriv(model1, z, [], 'Jacobian');
 %     M  = reshape(model(z), [], 1);
 %     if isnumeric(fun)
 %         D1 = fun;
