@@ -14,7 +14,7 @@ end
 
 methods
 
-function this = Kernelgn(x, y, numfeat, N, R, resid, jacobian,gramian) % constructor
+function this = Kernelgn(x, y, numfeat, N, R, resid, jacobian, gramian) % constructor
     this.x = x;
     this.y = y;
     this.numfeat = numfeat;
@@ -96,7 +96,7 @@ function grad = grad(this,z) % column vector with the gradient
 %     grad1 = deriv(@this.objfun, z, this.objfun(z), 'gradient');
 %     grad1 = TensorOptimizationKernel.serialize(grad1);
 %     % computed
-%     grad2 = gradTmp;
+%     grad2 = gradjac;
 %     
 %     % Check if correct
 %     relerr = frob(grad1-grad2)/frob(grad1);
@@ -110,21 +110,20 @@ function grad = grad(this,z) % column vector with the gradient
 end
 
 function y = JHJx(this, z, x)
-    this.gramian = this.jacobian*this.jacobian';
-    y = this.gramian*x;
+%     this.gramian = this.jacobian*this.jacobian';
+%     y = this.gramian*x;
     
-%     Jx = this.gradient'*x;
-%     y = this.gradient*Jx;
+    Jx = this.jacobian'*x;
+    y = this.jacobian*Jx;
     
     %% Assert
-%     model1 = @(Z) objfun(this,Z);
-%     model2 = @(Z) residFun(this,z);
+%     model = @(Z) objfun(this,Z);
 %     fun = 1;
 %     elementwise = isnumeric(fun) || nargin(fun) == 2; 
 %     tol = 1e-4;
 %     
 %     % target
-%     J1 = deriv(model1, z, [], 'Jacobian');
+%     J1 = deriv(model, z, [], 'Jacobian'); % error, throws same response if 4th parameter is "gradient"
 %     M  = reshape(model(z), [], 1);
 %     if isnumeric(fun)
 %         D1 = fun;
@@ -134,17 +133,16 @@ function y = JHJx(this, z, x)
 %     end
 %     y1 = J1'*(D1*(J1*x));
 %     
-%     % computed
-% %     y2 = y;
-% %     
-% %     % Check if correct
-% %     relerr = frob(y1-y2)/frob(y1);
-% %     if exist('assertElementsAlmostEqual.m', 'file')
-% %         assertElementsAlmostEqual(relerr, 0, 'absolute', tol);
-% %     else % fall back to Matlab's Unit Test Framework
-% %         assert(relerr <= tol);
-% %     end
-%     y = y1;
+%     computed
+%     y2 = y;
+%     
+%     % Check if correct
+%     relerr = frob(y1-y2)/frob(y1);
+%     if exist('assertElementsAlmostEqual.m', 'file')
+%         assertElementsAlmostEqual(relerr, 0, 'absolute', tol);
+%     else % fall back to Matlab's Unit Test Framework
+%         assert(relerr <= tol);
+%     end
 end
 
 function y = M_jacobi(this,z,q)

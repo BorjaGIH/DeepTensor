@@ -4,9 +4,9 @@ clearvars; clc;
 % % PD_constraint_dataTensor branch
 
 %% Parameters
-numfeat = 4;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
-N = 4;                      % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
-R = 2;                          % Rank of the CPD representation
+numfeat = 5;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+N = 3;                          % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
+R = 3;                          % Rank of the CPD representation
 M = 200;                         % Number of datapoints (each datapoint has numfeat values)
 generator = 'function';           % either 'tensor' or 'function'
 ratioTr = 0.7;                  % fraction of datapoints to use for train
@@ -17,7 +17,7 @@ factorT = 1e-2;                 % factor for the noise in tensor
 factor0 = 2;                    % factor for the initial value
 facX = 1;                       % factor for the random datapoints
 
-optimizer = 'minf_lfbgs';  % optimizer and optimizer options
+optimizer = 'nls_gndl';  % optimizer and optimizer options
 options.Display = true;
 options.TolFun = eps^2;
 options.TolX = eps;
@@ -29,7 +29,7 @@ options.CGmaxIter = 15;
 X = facX*rand(M,numfeat-1);            % X input
 X = [ones(M,1) X];                      % add bias term
 size_tens = repmat(numfeat,1,N);
-Utrue = cpd_rnd(size_tens(:),R);         % "true" tensor
+Utrue = cpd_rnd(size_tens(:),R);         % this is the "true" tensor
 
 if strcmp(generator,'tensor')
     % add noise where appropriate
@@ -83,18 +83,18 @@ Xte = X(floor(ratioTr*size(X,1))+1:end,:);
 Ytr = Y(1:floor(ratioTr*size(Y,1)));
 Yte = Y(floor(ratioTr*size(Y,1))+1:end);
 
-%% Optimization using kernel
+%% Optimization
 tic  % start time
 
 U0 = cpd_rnd(size_tens(:),R);  % random initial value
 
 % kernel1 = Kernelbfgs(Xtr,Ytr,numfeat,N,R); % create kernel
 % kernel1.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
-% [Uest,output] = minf_lbfgs(@kernel1.objfun, @kernel1.grad, U0, options); % Minimize
+% [Uest,output] = minf_lbfgs(@kernel1.objfun, @kernel1.grad, U0, options);
 
 kernel2 = Kernelgn(Xtr,Ytr,numfeat,N,R,[],[],[]); % create kernel
 kernel2.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
-dF.JHF = @kernel2.grad;
+dF.JHF = @kernel2.grad; 
 dF.JHJx = @kernel2.JHJx;
 dF.M = @kernel2.M_jacobi;
 [Uest,output] = nls_gndl(@kernel2.objfun, dF, U0, options);
