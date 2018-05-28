@@ -68,6 +68,11 @@ function grad = grad(this,z) % column vector with the gradient
     rvec = repmat(tmp,1,this.N);
     nvec = sort(indx);
     
+%     indx = repmat(1:this.numfeat,1,this.R*this.N);
+%     tmp = sort(repmat(1:this.R,1,this.N));
+%     rvec = repmat(tmp,1,this.N);
+%     nvec = sort(indx);
+    
     for ii=1:npoints % loop through all datapoints
         
         der = zeros(length(gradTmp),1);

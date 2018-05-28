@@ -4,9 +4,9 @@ clearvars; clc;
 % % PD_constraint_dataTensor branch
 
 %% Parameters
-numfeat = 5;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
-N = 3;                          % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
-R = 3;                          % Rank of the CPD representation
+numfeat = 4;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+N = 4;                          % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
+R = 2;                          % Rank of the CPD representation
 M = 200;                         % Number of datapoints (each datapoint has numfeat values)
 generator = 'function';           % either 'tensor' or 'function'
 ratioTr = 0.7;                  % fraction of datapoints to use for train
