@@ -64,14 +64,9 @@ function grad = grad(this,z) % column vector with the gradient
     jacobtmp = zeros(this.N*this.R*this.numfeat,npoints);
     
     indx = repmat(1:this.numfeat,1,this.R*this.N);
-    tmp = sort(repmat(1:this.R,1,this.N));
+    tmp = sort(repmat(1:this.R,1,this.numfeat));
     rvec = repmat(tmp,1,this.N);
-    nvec = sort(indx);
-    
-%     indx = repmat(1:this.numfeat,1,this.R*this.N);
-%     tmp = sort(repmat(1:this.R,1,this.N));
-%     rvec = repmat(tmp,1,this.N);
-%     nvec = sort(indx);
+    nvec = kron((1:this.N),ones(1,this.numfeat*this.R));
     
     for ii=1:npoints % loop through all datapoints
         
@@ -115,11 +110,11 @@ function grad = grad(this,z) % column vector with the gradient
 end
 
 function y = JHJx(this, z, x)
-%     this.gramian = this.jacobian*this.jacobian';
-%     y = this.gramian*x;
+    this.gramian = this.jacobian*this.jacobian';
+    y = this.gramian*x;
     
-    Jx = this.jacobian'*x;
-    y = this.jacobian*Jx;
+%     Jx = this.jacobian'*x;
+%     y = this.jacobian*Jx;
     
     %% Assert
 %     model = @(Z) objfun(this,Z);
