@@ -86,24 +86,28 @@ function grad = grad(this,z) % column vector with the gradient
             der(jj) = prod(tmp2);            
         end  
         jacobtmp(:,ii) = der;
-%         gradTmp = gradTmp + (this.resid(ii)).*der; 
     end
     this.jacobian = jacobtmp;
     gradjac = jacobtmp*this.resid;
     grad = gradjac;
         
     %% Assert
+%     tol = 1e-5;
+
+%     % target
 %     grad1 = deriv(@this.objfun, z, this.objfun(z), 'gradient');
 %     grad1 = TensorOptimizationKernel.serialize(grad1);
 %     % computed
 %     grad2 = gradjac;
 %     
 %     % Check if correct
+%     err = frob(grad1-grad2);
 %     relerr = frob(grad1-grad2)/frob(grad1);
 % 
 % %     assert(relerr <= tol);
 %     if ~(relerr <= tol)
-%         disp('Error 2');
+%         disp(['Rel. err: ',num2str(relerr)]);
+%         disp(['Err: ',num2str(err)]);
 %         return
 %     end
     
@@ -117,10 +121,10 @@ function y = JHJx(this, z, x)
 %     y = this.jacobian*Jx;
     
     %% Assert
-%     model = @(Z) objfun(this,Z);
+%     model = @(Z) residFun(this,Z);
 %     fun = 1;
 %     elementwise = isnumeric(fun) || nargin(fun) == 2; 
-%     tol = 1e-4;
+%     tol = 1e-6;
 %     
 %     % target
 %     J1 = deriv(model, z, [], 'Jacobian'); % error, throws same response if 4th parameter is "gradient"
@@ -133,15 +137,16 @@ function y = JHJx(this, z, x)
 %     end
 %     y1 = J1'*(D1*(J1*x));
 %     
-%     computed
+%     % computed
 %     y2 = y;
 %     
 %     % Check if correct
 %     relerr = frob(y1-y2)/frob(y1);
-%     if exist('assertElementsAlmostEqual.m', 'file')
-%         assertElementsAlmostEqual(relerr, 0, 'absolute', tol);
-%     else % fall back to Matlab's Unit Test Framework
-%         assert(relerr <= tol);
+%     
+% %     assert(relerr <= tol);
+%     if ~(relerr <= tol)
+%         disp(['Rel. err: ',num2str(relerr)]);
+%         return
 %     end
 end
 

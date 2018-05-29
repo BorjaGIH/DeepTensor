@@ -1,15 +1,16 @@
 clearvars; clc;
-% rng(90);
+% rng(1); % exact solution for generator 'tensor'
+rng(10); % exact solution for generator 'function' (5,3,2,200), (200,15).
 % https://github.com/BorjaGIH/DeepTensor
-% % PD_constraint_dataTensor branch
+% Kernel_cpd_gn branch
 
 %% Parameters
-numfeat = 4;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
-N = 4;                          % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
+numfeat = 5;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+N = 3;                          % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
 R = 2;                          % Rank of the CPD representation
 M = 200;                         % Number of datapoints (each datapoint has numfeat values)
 generator = 'function';           % either 'tensor' or 'function'
-ratioTr = 0.7;                  % fraction of datapoints to use for train
+ratioTr = 0.8;                  % fraction of datapoints to use for train
 ratioTe = 1 - ratioTr;          % fraction of datapoints to use for test
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
 factorY = 1e0;                 % factor for the noise in output
@@ -21,7 +22,7 @@ optimizer = 'nls_gndl';  % optimizer and optimizer options
 options.Display = true;
 options.TolFun = eps^2;
 options.TolX = eps;
-options.MaxIter = 1000;
+options.MaxIter = 200;
 options.TolAbs = eps;
 options.CGmaxIter = 15;
 
