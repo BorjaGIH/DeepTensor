@@ -1,6 +1,6 @@
 clearvars; clc;
-% rng(1); % exact solution for generator 'tensor'
-rng(10); % exact solution for generator 'function' (5,3,2,200), (200,15).
+% rng(1); % exact solution for generator 'tensor' (5,3,2,200), (200,15).
+% rng(10); % exact solution for generator 'function' (5,3,2,200), (200,15).
 % https://github.com/BorjaGIH/DeepTensor
 % Kernel_cpd_gn branch
 
@@ -9,7 +9,7 @@ numfeat = 5;                    % Number of features. "numfeat" is the dimension
 N = 3;                          % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
 R = 2;                          % Rank of the CPD representation
 M = 200;                         % Number of datapoints (each datapoint has numfeat values)
-generator = 'function';           % either 'tensor' or 'function'
+generator = 'tensor';           % either 'tensor' or 'function'
 ratioTr = 0.8;                  % fraction of datapoints to use for train
 ratioTe = 1 - ratioTr;          % fraction of datapoints to use for test
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
