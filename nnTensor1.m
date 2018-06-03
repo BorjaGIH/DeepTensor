@@ -1,9 +1,9 @@
 clearvars; clc;
-rng(65);
+rng(65); % exact solution for generator 'tensor' (5,3,3,200), (400,60)
 % rng(1); % exact solution for generator 'tensor' (5,3,2,200), (200,15).
 % rng(10); % exact solution for generator 'function' (5,3,2,200), (200,15).
 % https://github.com/BorjaGIH/DeepTensor
-% Kernel_noStruc branch
+% Kernel_struc branch
 
 %% Parameters
 numfeat = 5;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
