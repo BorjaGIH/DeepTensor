@@ -1,4 +1,5 @@
 clearvars; clc;
+rng(65);
 % rng(1); % exact solution for generator 'tensor' (5,3,2,200), (200,15).
 % rng(10); % exact solution for generator 'function' (5,3,2,200), (200,15).
 % https://github.com/BorjaGIH/DeepTensor
@@ -7,24 +8,24 @@ clearvars; clc;
 %% Parameters
 numfeat = 5;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
 N = 3;                          % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
-R = 2;                          % Rank of the CPD representation
+R = 3;                          % Rank of the CPD representation
 M = 200;                         % Number of datapoints (each datapoint has numfeat values)
 generator = 'tensor';           % either 'tensor' or 'function'
 ratioTr = 0.8;                  % fraction of datapoints to use for train
 ratioTe = 1 - ratioTr;          % fraction of datapoints to use for test
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
-factorY = 1e0;                 % factor for the noise in output
+factorY = 1e-2;                 % factor for the noise in output
 factorT = 1e-2;                 % factor for the noise in tensor
 factor0 = 2;                    % factor for the initial value
-facX = 1;                       % factor for the random datapoints
+facX = 3;                       % factor for the random datapoints
 
 optimizer = 'nls_gndl';  % optimizer and optimizer options
-options.Display = true;
+options.Display = 10;
 options.TolFun = eps^2;
 options.TolX = eps;
-options.MaxIter = 200;
+options.MaxIter = 400;
 options.TolAbs = eps;
-options.CGmaxIter = 15;
+options.CGmaxIter = 60;
 
 %% Generate data and tensors
 X = facX*rand(M,numfeat-1);            % X input
