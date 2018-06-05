@@ -1,17 +1,17 @@
 clearvars; clc;
-rng(65);
+% rng(65);
 % rng(1); % exact solution for generator 'tensor' (5,3,2,200), (200,15).
 % rng(10); % exact solution for generator 'function' (5,3,2,200), (200,15).
 % https://github.com/BorjaGIH/DeepTensor
-% Kernel_noStruc branch
+% MLSVD branch
 
 %% Parameters
-numfeat = 5;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+numfeat = 2;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
 N = 3;                          % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
-R = 3;                          % Rank of the CPD representation
-M = 200;                         % Number of datapoints (each datapoint has numfeat values)
+R = 2;                          % Rank of the CPD representation
+M = 10;                         % Number of datapoints (each datapoint has numfeat values)
 generator = 'tensor';           % either 'tensor' or 'function'
-ratioTr = 0.8;                  % fraction of datapoints to use for train
+ratioTr = 0.9;                  % fraction of datapoints to use for train
 ratioTe = 1 - ratioTr;          % fraction of datapoints to use for test
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
 factorY = 1e-2;                 % factor for the noise in output
@@ -23,15 +23,19 @@ optimizer = 'nls_gndl';  % optimizer and optimizer options
 options.Display = 10;
 options.TolFun = eps^2;
 options.TolX = eps;
-options.MaxIter = 400;
+options.MaxIter = 200;
 options.TolAbs = eps;
 options.CGmaxIter = 60;
 
 %% Generate data and tensors
 X = facX*rand(M,numfeat-1);            % X input
 X = [ones(M,1) X];                      % add bias term
+% size_tens = repmat(numfeat,1,N);
+% Utrue = cpd_rnd(size_tens(:),R);         % this is the "true" tensor
 size_tens = repmat(numfeat,1,N);
-Utrue = cpd_rnd(size_tens(:),R);         % this is the "true" tensor
+size_core = repmat(R,1,N);
+[U,S] = lmlra_rnd(size_tens,size_core);
+
 
 if strcmp(generator,'tensor')
     % add noise where appropriate
@@ -68,7 +72,7 @@ if strcmp(generator,'tensor')
             SNRt = 20*log10(frob(cpdgen(pert))/frob(W))
             
         case('none')
-            W = cpdgen(Utrue);
+            W = ful({U,S});
             Un = repmat({X'},1,N);
             Y = mtkrprod(W,Un,0)';
         otherwise
@@ -85,21 +89,27 @@ Xte = X(floor(ratioTr*size(X,1))+1:end,:);
 Ytr = Y(1:floor(ratioTr*size(Y,1)));
 Yte = Y(floor(ratioTr*size(Y,1))+1:end);
 
+%% Test about MLSVD
+Ux = cellfun(@(u) u'*Xtr',U,'UniformOutput',false);
+Uxf = flip(Ux);
+Yf = S(:)'*kr(Uxf);
+
 %% Optimization
 tic  % start time
+initial = struct;
 
-U0 = cpd_rnd(size_tens(:),R);  % random initial value
+[initial.U0,initial.S0] = lmlra_rnd(size_tens,size_core);  % random initial value
 
 % kernel1 = Kernelbfgs(Xtr,Ytr,numfeat,N,R); % create kernel
 % kernel1.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
 % [Uest,output] = minf_lbfgs(@kernel1.objfun, @kernel1.grad, U0, options);
 
 kernel2 = Kernelgn(Xtr,Ytr,numfeat,N,R,[],[],[]); % create kernel
-kernel2.initialize(U0); % z0 is the initial guess for the variables, e.g., z0 = U0
+kernel2.initialize(initial); % z0 is the initial guess for the variables, e.g., z0 = U0
 dF.JHF = @kernel2.grad; 
 dF.JHJx = @kernel2.JHJx;
-dF.M = @kernel2.M_jacobi;
-[Uest,output] = nls_gndl(@kernel2.objfun, dF, U0, options);
+% dF.M = @kernel2.M_jacobi;
+[Uest,output] = nls_gndl(@kernel2.objfun, dF, {initial.U0,initial.S0}, options);
 
 time = toc;
 
@@ -110,7 +120,7 @@ if strcmp(generator,'tensor')
     err = (sqrt(output.fval*2))/norm(Ytr);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
-    West = cpdgen(Uest);
+    West = ful(Uest);
     Un = repmat({Xtr'},1,N);
     Yest = mtkrprod(West,Un,0)';
     

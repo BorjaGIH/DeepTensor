@@ -28,74 +28,50 @@ end
 function fval = objfun(this,z) % objective function
     X = this.x;
     Y = this.y;
-    npoints = size(X,1);
-    Yest = zeros(npoints,1);
-    Xii = repmat(X,1,this.N);
+    U = z{1};
+    S = z{2};
     
-    % Construct small matrix stacking rows
-    for jj=1:this.R
-        b1 = [z{1}(:,jj)';zeros(this.N-1,this.numfeat)]; % block
-        for ii=2:this.N
-            b1 = [b1, [zeros(ii-1,this.numfeat);z{ii}(:,jj)';zeros(this.N-ii,this.numfeat)]]; % jj is the rank
-        end
-        if jj==1
-            m1 = b1; % matrix (M1)
-        else
-            m1 = [m1;b1];
-        end
-    end
+    Ux = cellfun(@(u) u'*X',U,'UniformOutput',false);
+    Uxf = flip(Ux);
+    Yest = S(:)'*kr(Uxf);
     
-    for ii=1:npoints % loop through all datapoints
-        xii = Xii(ii,:)';
-        tmp = m1*xii;
-        res = reshape(tmp,this.N,this.R);
-        Yest(ii) = sum(prod(res,1));
-    end
-    
-    this.resid = Yest-Y;
+    this.resid = Yest'-Y;
     fval = 0.5*(this.resid'*this.resid);
 end 
 
 function grad = grad(this,z) % column vector with the gradient
-    X = this.x;
-    npoints = size(X,1);
-    gradTmp = zeros(this.N*this.R*this.numfeat,1);
-    jacobtmp = zeros(this.N*this.R*this.numfeat,npoints);
-    
-    indx = repmat(1:this.numfeat,1,this.R*this.N);
-    tmp = sort(repmat(1:this.R,1,this.numfeat));
-    rvec = repmat(tmp,1,this.N);
-    nvec = kron((1:this.N),ones(1,this.numfeat*this.R));
-    
-    for ii=1:npoints % loop through all datapoints
+    % Tensor-vector product LS-CPD gradient
+        E = this.resid;
+        M = size(E,1);
+        grad = zeros(thisN*this.R*this.numfeat+this.R^this.N,1);
+        gradind=1;
+        U = z{1};
+        S = z{2};
         
-        der = zeros(length(gradTmp),1);
-        for jj=1:length(gradTmp)
-            k = indx(jj); n = nvec(jj); r = rvec(jj);
-            tmp2 = zeros(1,this.N);
-            ztmp = z;
-            
-            % Direct calculation
-            ztmp{n}(:,r) = 0;
-            ztmp{n}(k,r) = 1;
-            
-            for l=1:this.N
-                tmp2(l) = ztmp{l}(:,r)'*X(ii,:)';
+        for n = 1:this.N
+            for ii = 1:this.R*M
+                zaux = U;
+                zaux{n} = zeros(size(zaux{n}));
+                zaux{n}(ii) = 1;
+                tmp = cellfun(@(u) X*u, zaux, 'UniformOutput', false);
+                mult = tmp{1};
+                for k = 2:this.N
+                    mult = mult.*tmp{k};
+                end
+                cache.J{n}(:,ii) = mult*ones(R,1);
+                grad(gradind) = cache.J{n}(:,ii)'*E;
+                gradind = gradind+1;
             end
-            der(jj) = prod(tmp2);            
-        end  
-        jacobtmp(:,ii) = der;
-    end
-    this.jacobian = jacobtmp;
-    gradjac = jacobtmp*this.resid;
-    grad = gradjac;
+            cache.JHJinv{n} = pinv(conj(cache.J{n}.')*cache.J{n});
+        end
         
     %% Assert
 %     tol = 1e-5;
 % 
 %     % target
-%     grad1 = deriv(@this.objfun, z, this.objfun(z), 'gradient');
-%     grad1 = TensorOptimizationKernel.serialize(grad1);
+    grad1 = deriv(@this.objfun, z, this.objfun(z), 'gradient');
+    grad1 = TensorOptimizationKernel.serialize(grad1);
+    grad = grad1;
 %     % computed
 %     grad2 = gradn;
 %     
@@ -112,26 +88,26 @@ function grad = grad(this,z) % column vector with the gradient
 end
 
 function y = JHJx(this,z,x)
-    this.gramian = this.jacobian*this.jacobian';
-    y = this.gramian*x;
-%     yold = y; % for the numerical check
+%     this.gramian = this.jacobian*this.jacobian';
+%     y = this.gramian*x;
     
     %% Assert
-%     model = @(Z) residFun(this,Z);
-%     fun = 1;
-%     elementwise = isnumeric(fun) || nargin(fun) == 2; 
-%     tol = 1e-6;
-%     
-%     % target
-%     J1 = deriv(model, z, [], 'Jacobian'); % error, throws same response if 4th parameter is "gradient"
-%     M  = reshape(model(z), [], 1);
-%     if isnumeric(fun)
-%         D1 = fun;
-%         if isvector(D1), D1 = diag(D1); end
-%     else
-%         D1 = TensorOptimizationKernel.numericHessianFD(fun, M, elementwise);
-%     end
-%     y1 = J1'*(D1*(J1*yold));
+    model = @(Z) residFun(this,Z);
+    fun = 1;
+    elementwise = isnumeric(fun) || nargin(fun) == 2; 
+    tol = 1e-6;
+    
+    % target
+    J1 = deriv(model, z, [], 'Jacobian'); % error, throws same response if 4th parameter is "gradient"
+    M  = reshape(model(z), [], 1);
+    if isnumeric(fun)
+        D1 = fun;
+        if isvector(D1), D1 = diag(D1); end
+    else
+        D1 = TensorOptimizationKernel.numericHessianFD(fun, M, elementwise);
+    end
+    y1 = J1'*(D1*(J1*x));
+    y = y1;
 %     
 %     % computed
 %     y2 = y;
@@ -154,29 +130,12 @@ end
 function res = residFun(this,z)
     X = this.x;
     Y = this.y;
-    npoints = size(X,1);
-    Yest = zeros(npoints,1);
-    Xii = repmat(X,1,this.N);
+    U = z{1};
+    S = z{2};
     
-    % Construct small matrix stacking rows
-    for jj=1:this.R
-        b1 = [z{1}(:,jj)';zeros(this.N-1,this.numfeat)]; % block
-        for ii=2:this.N
-            b1 = [b1, [zeros(ii-1,this.numfeat);z{ii}(:,jj)';zeros(this.N-ii,this.numfeat)]]; % jj is the rank
-        end
-        if jj==1
-            m1 = b1; % matrix (M1)
-        else
-            m1 = [m1;b1];
-        end
-    end
-    
-    for ii=1:npoints % loop through all datapoints
-        xii = Xii(ii,:)';
-        tmp = m1*xii;
-        res = reshape(tmp,this.N,this.R);
-        Yest(ii) = sum(prod(res,1));
-    end
+    Ux = cellfun(@(u) u'*X',U,'UniformOutput',false);
+    Uxf = flip(Ux);
+    Yest = S(:)'*kr(Uxf);
     
     res = Yest-Y;
 end
