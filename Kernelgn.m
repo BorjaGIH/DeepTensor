@@ -41,37 +41,47 @@ end
 
 function grad = grad(this,z) % column vector with the gradient
     % Tensor-vector product LS-CPD gradient
-        E = this.resid;
+      X = this.x;
+      E = this.resid;
         M = size(E,1);
-        grad = zeros(thisN*this.R*this.numfeat+this.R^this.N,1);
+        grad = zeros(this.N*this.R*this.numfeat+this.R^this.N,1);
         gradind=1;
         U = z{1};
         S = z{2};
         
+        % Part of U
         for n = 1:this.N
-            for ii = 1:this.R*M
+            for ii = 1:this.R*this.numfeat
                 zaux = U;
                 zaux{n} = zeros(size(zaux{n}));
                 zaux{n}(ii) = 1;
-                tmp = cellfun(@(u) X*u, zaux, 'UniformOutput', false);
-                mult = tmp{1};
-                for k = 2:this.N
-                    mult = mult.*tmp{k};
-                end
-                cache.J{n}(:,ii) = mult*ones(R,1);
-                grad(gradind) = cache.J{n}(:,ii)'*E;
+                Ux = cellfun(@(u) u'*X', zaux, 'UniformOutput', false);
+                Uxf = flip(Ux);
+                this.jacobian{n}(:,ii) = S(:)'*kr(Uxf);
+                grad(gradind) = this.jacobian{n}(:,ii)'*E;
                 gradind = gradind+1;
             end
-            cache.JHJinv{n} = pinv(conj(cache.J{n}.')*cache.J{n});
+%         this.JHJinv{n} = pinv(conj(this.jacobian{n}.')*this.jacobian{n});
         end
+        
+        % Part of S
+        for ii=1:numel(S)
+            saux = zeros(numel(S),1);
+            saux(ii)= 1;
+            Ux = cellfun(@(u) u'*X', U, 'UniformOutput', false);
+            Uxf = flip(Ux);
+            this.jacobian{this.N+1}(:,ii) = saux(:)'*kr(Uxf);
+            grad(gradind) = this.jacobian{this.N+1}(:,ii)'*E;
+            gradind = gradind+1;
+        end
+        
         
     %% Assert
 %     tol = 1e-5;
 % 
 %     % target
-    grad1 = deriv(@this.objfun, z, this.objfun(z), 'gradient');
-    grad1 = TensorOptimizationKernel.serialize(grad1);
-    grad = grad1;
+%     grad1 = deriv(@this.objfun, z, this.objfun(z), 'gradient');
+%     grad1 = TensorOptimizationKernel.serialize(grad1);
 %     % computed
 %     grad2 = gradn;
 %     
@@ -87,27 +97,42 @@ function grad = grad(this,z) % column vector with the gradient
 %     end
 end
 
-function y = JHJx(this,z,x)
-%     this.gramian = this.jacobian*this.jacobian';
-%     y = this.gramian*x;
+function y = JHJx(this,z,y)
+    yold = y;
+% 
+    J  = this.jacobian;
+%     Jx = zeros(size(this.x,1),1);
+%     offset = cellfun(@(u) size(u,2),this.jacobian);
+%     offset = cumsum([1; kron(offset,1)']);
+%     
+%     for n = 1:this.N+1
+%         Jx = Jx + (J{n})*y(offset(n):offset(n+1)-1);
+%     end
+%     for n = 1:this.N+1
+%         y(offset(n):offset(n+1)-1) = (J{n})'*Jx;
+%     end
+    
+    completeJac = [J{1},J{2},J{3},J{4}];
+    gramian = completeJac'*completeJac;
+    y = gramian*yold;
     
     %% Assert
-    model = @(Z) residFun(this,Z);
-    fun = 1;
-    elementwise = isnumeric(fun) || nargin(fun) == 2; 
-    tol = 1e-6;
-    
-    % target
-    J1 = deriv(model, z, [], 'Jacobian'); % error, throws same response if 4th parameter is "gradient"
-    M  = reshape(model(z), [], 1);
-    if isnumeric(fun)
-        D1 = fun;
-        if isvector(D1), D1 = diag(D1); end
-    else
-        D1 = TensorOptimizationKernel.numericHessianFD(fun, M, elementwise);
-    end
-    y1 = J1'*(D1*(J1*x));
-    y = y1;
+%     model = @(Z) residFun(this,Z);
+%     fun = 1;
+%     elementwise = isnumeric(fun) || nargin(fun) == 2; 
+%     tol = 1e-6;
+%     
+%     % target
+%     J1 = deriv(model, z, [], 'Jacobian'); % error, throws same response if 4th parameter is "gradient"
+%     M  = reshape(model(z), [], 1);
+%     if isnumeric(fun)
+%         D1 = fun;
+%         if isvector(D1), D1 = diag(D1); end
+%     else
+%         D1 = TensorOptimizationKernel.numericHessianFD(fun, M, elementwise);
+%     end
+%     y1 = J1'*(D1*(J1*yold));
+%     y = y1;
 %     
 %     % computed
 %     y2 = y;

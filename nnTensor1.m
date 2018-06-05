@@ -6,12 +6,12 @@ clearvars; clc;
 % MLSVD branch
 
 %% Parameters
-numfeat = 2;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
+numfeat = 5;                    % Number of features. "numfeat" is the dimension(s) of the tensor (it includes the bias term)
 N = 3;                          % Order of the tensor. "order" is also degree of the polynomial that tensor product achieves
 R = 2;                          % Rank of the CPD representation
-M = 10;                         % Number of datapoints (each datapoint has numfeat values)
-generator = 'tensor';           % either 'tensor' or 'function'
-ratioTr = 0.9;                  % fraction of datapoints to use for train
+M = 1000;                         % Number of datapoints (each datapoint has numfeat values)
+generator = 'function';           % either 'tensor' or 'function'
+ratioTr = 0.8;                  % fraction of datapoints to use for train
 ratioTe = 1 - ratioTr;          % fraction of datapoints to use for test
 noiseFlag = 'none';             % either 'output', 'tensor', 'both' or 'none' depending on where noise is
 factorY = 1e-2;                 % factor for the noise in output
@@ -142,7 +142,7 @@ elseif strcmp(generator,'function')
     err = (sqrt(output.fval*2))/norm(Ytr);
     semilogy(err); xlabel('Iteration'); ylabel('error');
     
-    West = cpdgen(Uest);
+    West = ful(Uest);
     Un = repmat({Xtr'},1,N);
     Yest = mtkrprod(West,Un,0)';
     
